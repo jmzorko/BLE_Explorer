@@ -82,7 +82,7 @@ class DetailActivity : ComponentActivity() {
         var connectState = remember { mutableStateOf<Int>(0) } // FIXME: should use BLEManager connect state enum
 
         val ctx = LocalContext.current
-        var bleManager = MyBleManager(ctx)
+        var bleManager = MyBleManager(ctx)  // FIXME move BLEManager out of this activity, maybe make it a service
         var device = BluetoothAdapter.getDefaultAdapter().getRemoteDevice(deviceAddress)
 
         bleManager.connectionObserver = object : ConnectionObserver {

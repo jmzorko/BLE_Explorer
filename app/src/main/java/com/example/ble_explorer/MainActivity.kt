@@ -106,7 +106,7 @@ class MainActivity : ComponentActivity() {
                 }
             }
 
-            if (good) {
+            if (good) { // FIXME if user declines permissions twice, consider sending them to the app Settings page to grant them
                 scanner.startScan(scanCallback)
             }
         }
