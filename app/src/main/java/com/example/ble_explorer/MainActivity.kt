@@ -102,6 +102,7 @@ class MainActivity : ComponentActivity() {
                 } else {
                     good = false
                     Log.d("JMZ", "$s denied")
+                    return@forEach
                 }
             }
 
