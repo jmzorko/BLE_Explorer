@@ -57,6 +57,8 @@ import com.example.ble_explorer.DetailActivity
 import com.example.ble_explorer.ui.theme.BLE_ExplorerTheme
 
 class MainActivity : ComponentActivity() {
+    private val viewModel = BLEViewModel()
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
@@ -72,21 +74,11 @@ class MainActivity : ComponentActivity() {
     @OptIn(ExperimentalMaterial3Api::class)
     @Composable
     fun DevicesScreen(modifier: Modifier = Modifier) {
-        var devicesState = remember { mutableStateListOf<DeviceScanResult>() }
-
         val scanCallback: ScanCallback = object : ScanCallback() {
             override fun onScanResult(callbackType: Int, result: ScanResult?) {
                 super.onScanResult(callbackType, result)
                 result?.let {
-                    var dev = DeviceScanResult(result.rssi, result.device)
-                    val found = devicesState.find {
-                        it.device.address.equals(dev.device.address)
-                    }
-                    if (found == null) {
-                        devicesState.add(dev)
-                    } else {
-                        found.rssi = result.rssi
-                    }
+                    viewModel.update(result)
                 }
             }
         }
@@ -139,7 +131,7 @@ class MainActivity : ComponentActivity() {
         )
 
         LazyColumn(modifier = modifier.padding(top = 128.dp)) {
-            var sorted = devicesState.sortedWith(rssiComparator)    // FIXME should sort on background thread
+            var sorted = viewModel.sort()    // FIXME should sort on background thread
             items(sorted.size) {
                 Device(sorted[it].device.name ?: "(no name)", sorted[it].device.address, sorted[it].rssi, sorted[it].device.bondState)
             }
@@ -188,8 +180,4 @@ class MainActivity : ComponentActivity() {
             }
         }
     }
-}
-
-private val rssiComparator = Comparator<DeviceScanResult> { left, right ->
-    right.rssi.compareTo(left.rssi)
 }
