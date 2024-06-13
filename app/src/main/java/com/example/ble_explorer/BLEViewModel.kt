@@ -18,10 +18,12 @@ class BLEViewModel : ViewModel() {
         } else {
             found.rssi = result.rssi
         }
+
+        sort()
     }
 
-    fun sort(): List<DeviceScanResult> {
-        return devicesState.sortedWith(rssiComparator)
+    fun sort() {
+        devicesState.sortWith(rssiComparator)
     }
 }
 

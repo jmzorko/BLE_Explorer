@@ -131,9 +131,8 @@ class MainActivity : ComponentActivity() {
         )
 
         LazyColumn(modifier = modifier.padding(top = 128.dp)) {
-            var sorted = viewModel.sort()    // FIXME should sort on background thread
-            items(sorted.size) {
-                Device(sorted[it].device.name ?: "(no name)", sorted[it].device.address, sorted[it].rssi, sorted[it].device.bondState)
+            items(viewModel.devicesState) {
+                Device(it.device.name ?: "(no name)", it.device.address, it.rssi, it.device.bondState)
             }
         }
     }
