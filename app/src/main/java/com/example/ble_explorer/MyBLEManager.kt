@@ -34,6 +34,10 @@ class MyBleManager(context: Context) : BleManager(context) {
 
         gatt.services.forEach { service ->
             Log.d(TAG, "... found service ${service.uuid}")
+
+            service.characteristics.forEach { char ->
+                Log.d(TAG, "... ... found characteristic ${char.uuid}")
+            }
         }
 
         val batteryService = gatt.getService(UUID.fromString(BATTERY_SERVICE))
