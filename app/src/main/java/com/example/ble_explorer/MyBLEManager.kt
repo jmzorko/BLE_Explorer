@@ -2,6 +2,7 @@ package com.example.ble_explorer
 
 import android.bluetooth.BluetoothGatt
 import android.bluetooth.BluetoothGattCharacteristic
+import android.bluetooth.BluetoothGattServer
 import android.content.Context
 import android.util.Log
 import no.nordicsemi.android.ble.BleManager
@@ -30,6 +31,11 @@ class MyBleManager(context: Context) : BleManager(context) {
     override fun isRequiredServiceSupported(gatt: BluetoothGatt): Boolean {
         // Here obtain instances of your characteristics.
         // Return false if a required service has not been discovered.
+
+        gatt.services.forEach { service ->
+            Log.d(TAG, "... found service ${service.uuid}")
+        }
+
         val batteryService = gatt.getService(UUID.fromString(BATTERY_SERVICE))
         if (batteryService != null) {
             batteryChar = batteryService.getCharacteristic(UUID.fromString(BATTERY_CHARACTERISTIC))
@@ -53,6 +59,13 @@ class MyBleManager(context: Context) : BleManager(context) {
         // disconnects.
         // References to characteristics should be nullified here.
         batteryChar = null
+    }
+
+    override fun onServerReady(server: BluetoothGattServer) {
+        super.onServerReady(server)
+        server.services.forEach { service ->
+            Log.d(TAG, "... found service ${service.uuid}")
+        }
     }
 
     // ==== Public API ====
