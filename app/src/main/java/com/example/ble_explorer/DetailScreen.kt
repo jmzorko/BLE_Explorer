@@ -102,7 +102,7 @@ fun DetailScreen(navController: NavController, deviceAddress: String, modifier: 
                 Button(modifier = Modifier.size(width = 160.dp, height = 40.dp),
                     onClick = {
                         bleManager?.let {
-                            bleManager.disconnect().enqueue()   // FIXME doesn't seem to disconnect
+                            bleManager.disconnect().enqueue()
                         }
                     }
                 ) {
