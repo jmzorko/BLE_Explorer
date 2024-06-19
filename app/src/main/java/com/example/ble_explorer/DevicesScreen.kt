@@ -109,7 +109,7 @@ fun DevicesScreen(navController: NavController, modifier: Modifier = Modifier) {
             Row {
                 Text(stringResource(R.string.app_name))
 
-                IconButton(onClick = { scan() }) {
+                IconButton(modifier = Modifier.padding(end = 5.dp), onClick = { scan() }) {
                     Icon(
                         imageVector = Icons.Filled.Refresh,
                         contentDescription = ""
