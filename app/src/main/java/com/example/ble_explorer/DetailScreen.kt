@@ -67,7 +67,7 @@ fun DetailScreen(navController: NavController, deviceAddress: String, modifier: 
             Log.d("JMZ", "connection state: ${stateString}")
 
             Row {
-                IconButton(onClick = { /* TODO: pop nav stack */ }) {
+                IconButton(onClick = { navController.popBackStack() }) {
                     Icon(
                         imageVector = Icons.Filled.ArrowBack,
                         contentDescription = ""

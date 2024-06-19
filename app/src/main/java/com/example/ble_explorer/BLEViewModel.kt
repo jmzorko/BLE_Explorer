@@ -14,7 +14,7 @@ import no.nordicsemi.android.ble.observer.ConnectionObserver
 
 class BLEViewModel(private val ctx: Context) : ViewModel() {
     var devicesState = mutableStateListOf<DeviceScanResult>()
-    var connectState = mutableStateOf<Int>(0) // FIXME: should use BLEManager connect state enum
+    var connectState = mutableStateOf<Int>(0)
 
     var bleManager = MyBleManager(context = ctx)
 
