@@ -78,7 +78,7 @@ fun DetailScreen(navController: NavController, deviceAddress: String, modifier: 
         }
     )
 
-    if (connectState.value == 1) {
+    if (connectState.value == BluetoothGatt.STATE_CONNECTED) {
         Column(modifier = modifier.padding(top = 128.dp)) {
             Row {
                 if (batteryLevel.value >= 0) {
