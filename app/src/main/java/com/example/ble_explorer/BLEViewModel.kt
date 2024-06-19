@@ -2,8 +2,10 @@ package com.example.ble_explorer
 
 import android.bluetooth.BluetoothAdapter
 import android.bluetooth.BluetoothDevice
+import android.bluetooth.le.ScanCallback
 import android.bluetooth.le.ScanResult
 import android.content.Context
+import android.os.Handler
 import android.util.Log
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
@@ -17,6 +19,9 @@ class BLEViewModel(private val ctx: Context) : ViewModel() {
     var connectState = mutableStateOf<Int>(0)
 
     var bleManager = MyBleManager(context = ctx)
+    var scanner = BluetoothAdapter.getDefaultAdapter().bluetoothLeScanner
+    var scanHandler = Handler()
+    var isScanning = false
 
     init {
         bleManager.connectionObserver = object : ConnectionObserver {
@@ -48,6 +53,21 @@ class BLEViewModel(private val ctx: Context) : ViewModel() {
                 Log.d("JMZ", "connection observer reports ${bleManager.connectionState}")
             }
         }
+    }
+
+    fun startScan(scanCallback: ScanCallback) {
+        if (!isScanning) {
+            scanHandler.postDelayed({
+                scanner.stopScan(scanCallback)
+            }, 10000)
+
+            isScanning = true
+            scanner.startScan(scanCallback)
+        }
+    }
+
+    fun stopScan() {
+
     }
 
     fun update(result: ScanResult) {

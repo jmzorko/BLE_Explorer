@@ -5,13 +5,20 @@ import android.bluetooth.BluetoothAdapter
 import android.bluetooth.le.ScanCallback
 import android.bluetooth.le.ScanResult
 import android.content.pm.PackageManager
+import android.os.Handler
 import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
@@ -30,6 +37,9 @@ import androidx.navigation.NavController
 @Composable
 fun DevicesScreen(navController: NavController, modifier: Modifier = Modifier) {
     var mainActivity = navController.context.findActivity() as MainActivity
+    var scanner = BluetoothAdapter.getDefaultAdapter().bluetoothLeScanner
+    var scanHandler = Handler()
+    var isScanning = false
 
     val scanCallback: ScanCallback = object : ScanCallback() {
         override fun onScanResult(callbackType: Int, result: ScanResult?) {
@@ -42,7 +52,18 @@ fun DevicesScreen(navController: NavController, modifier: Modifier = Modifier) {
         }
     }
 
-    var scanner = BluetoothAdapter.getDefaultAdapter().bluetoothLeScanner
+    fun scan() {
+        Log.d("JMZ", "starting BLE scan")
+        if (!isScanning) {
+            scanHandler.postDelayed({
+                scanner.stopScan(scanCallback)
+                isScanning = false
+            }, 10000)
+
+            isScanning = true
+            scanner.startScan(scanCallback)
+        }
+    }
 
     val bluetoothPermissionResultLauncher = rememberLauncherForActivityResult(contract = ActivityResultContracts.RequestMultiplePermissions()) {
         var good = false
@@ -58,7 +79,7 @@ fun DevicesScreen(navController: NavController, modifier: Modifier = Modifier) {
         }
 
         if (good) { // FIXME if user declines permissions twice, consider sending them to the app Settings page to grant them
-            scanner.startScan(scanCallback)
+            scan()
         }
     }
 
@@ -67,7 +88,7 @@ fun DevicesScreen(navController: NavController, modifier: Modifier = Modifier) {
     when (PackageManager.PERMISSION_GRANTED) {
         ActivityCompat.checkSelfPermission(ctx, Manifest.permission.BLUETOOTH_SCAN) -> {
             Log.d("JMZ", "needs BLUETOOTH_SCAN")
-            scanner.startScan(scanCallback)
+            scan()
         }
         ActivityCompat.checkSelfPermission(ctx, Manifest.permission.BLUETOOTH_CONNECT) -> {
             Log.d("JMZ", "needs BLUETOOTH_CONNECT")
@@ -85,7 +106,16 @@ fun DevicesScreen(navController: NavController, modifier: Modifier = Modifier) {
             titleContentColor = MaterialTheme.colorScheme.primary,
         ),
         title = {
-            Text(stringResource(R.string.app_name))
+            Row {
+                Text(stringResource(R.string.app_name))
+
+                IconButton(onClick = { scan() }) {
+                    Icon(
+                        imageVector = Icons.Filled.Refresh,
+                        contentDescription = ""
+                    )
+                }
+            }
         }
     )
 
@@ -105,3 +135,4 @@ fun DevicesScreen(navController: NavController, modifier: Modifier = Modifier) {
         }
     }
 }
+

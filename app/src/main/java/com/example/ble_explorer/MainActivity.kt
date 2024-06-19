@@ -37,7 +37,12 @@ class MainActivity : ComponentActivity() {
                                 }
                             )
                         ) { device ->
-                            device.arguments?.getString("address")?.let { DetailScreen(navController = navController, deviceAddress = it) }
+                            device.arguments?.let {
+                                it.getString("address")?.let {
+                                    DetailScreen(navController = navController, deviceAddress = it)
+                                }
+                            }
+                            //device.arguments?.getString("address")?.let { DetailScreen(navController = navController, deviceAddress = it) }
                         }
                     }
                 }
