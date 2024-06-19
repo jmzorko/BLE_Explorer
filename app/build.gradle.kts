@@ -51,6 +51,8 @@ android {
 
 dependencies {
 
+    val nav_version = "2.7.7"
+
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)
@@ -63,6 +65,8 @@ dependencies {
     implementation(libs.material)
     implementation(libs.androidx.activity)
     implementation(libs.androidx.constraintlayout)
+    implementation("androidx.navigation:navigation-compose:$nav_version")
+    //implementation("libs.androidx.lifecycle-view)androidx.lifecycle:lifecycle-viewmodel-compose:2.6.1")
     implementation("no.nordicsemi.android:ble-ktx:2.7.5")
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
