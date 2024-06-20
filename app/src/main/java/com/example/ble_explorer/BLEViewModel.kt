@@ -7,13 +7,23 @@ import android.util.Log
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
+import no.nordicsemi.android.ble.callback.DataReceivedCallback
+import no.nordicsemi.android.ble.data.Data
 import no.nordicsemi.android.ble.observer.ConnectionObserver
 
 class BLEViewModel(private val ctx: Context) : ViewModel() {
     var devicesState = mutableStateListOf<DeviceScanResult>()
     var connectState = mutableStateOf<Int>(0)
     var connectedAddress = mutableStateOf<String>("")
-    var bleManager = MyBleManager(context = ctx)
+    var batteryLevel = mutableStateOf<Int>(0)
+
+    var bleManager = MyBleManager(
+        object: DataReceivedCallback {
+            override fun onDataReceived(device: BluetoothDevice, data: Data) {
+                batteryLevel.value = data.getIntValue(Data.FORMAT_UINT8, 0)!!
+                Log.d("JMZ", "Battery level: ${batteryLevel.value}")
+            } },
+        context = ctx)
 
     init {
         bleManager.connectionObserver = object : ConnectionObserver {
@@ -49,6 +59,8 @@ class BLEViewModel(private val ctx: Context) : ViewModel() {
                 Log.d("JMZ", "connection observer reports ${bleManager.connectionState}")
             }
         }
+
+
     }
 
     fun update(result: ScanResult) {

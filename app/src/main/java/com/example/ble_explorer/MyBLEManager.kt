@@ -6,12 +6,16 @@ import android.bluetooth.BluetoothGattServer
 import android.content.Context
 import android.util.Log
 import no.nordicsemi.android.ble.BleManager
+import no.nordicsemi.android.ble.callback.DataReceivedCallback
 import no.nordicsemi.android.ble.data.Data
 import no.nordicsemi.android.ble.ktx.suspendForResponse
 import no.nordicsemi.android.ble.response.ReadResponse
 import java.util.UUID
 
-class MyBleManager(context: Context) : BleManager(context) {
+class MyBleManager(batteryChangedCallback: DataReceivedCallback, context: Context) : BleManager(context) {
+
+    var batteryCallback = batteryChangedCallback
+
     // ==== Logging =====
     override fun getMinLogPriority(): Int {
         // Use to return minimal desired logging priority.
@@ -25,7 +29,7 @@ class MyBleManager(context: Context) : BleManager(context) {
 
     // ==== Required implementation ====
     // This is a reference to a characteristic that the manager will use internally.
-    private var batteryChar: BluetoothGattCharacteristic? = null
+    var batteryChar: BluetoothGattCharacteristic? = null
 
     override fun isRequiredServiceSupported(gatt: BluetoothGatt): Boolean {
         // Here obtain instances of your characteristics.
@@ -55,6 +59,7 @@ class MyBleManager(context: Context) : BleManager(context) {
             .enqueue()
 
         enableNotifications(batteryChar).enqueue()
+        setNotificationCallback(batteryChar).with(batteryCallback)
     }
 
     override fun onServicesInvalidated() {

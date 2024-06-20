@@ -19,7 +19,6 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
@@ -32,12 +31,13 @@ import no.nordicsemi.android.ble.ktx.suspend
 @Composable
 fun DetailScreen(navController: NavController, deviceAddress: String, modifier: Modifier = Modifier) {
     val coroutineScope = rememberCoroutineScope()
-    var batteryLevel = remember { mutableStateOf<Int>(0) }
+    //var batteryLevel = remember { mutableStateOf<Int>(0) }
 
     var mainActivity = navController.context.findActivity() as MainActivity
     var bleManager = mainActivity.viewModel?.bleManager
     var device = BluetoothAdapter.getDefaultAdapter().getRemoteDevice(deviceAddress)
     var connectState = remember { mainActivity.viewModel!!.connectState }
+    var batteryLevel = remember { mainActivity.viewModel!!.batteryLevel}
     var stateString = getConnectedStateString(connectState.value)
 
     LaunchedEffect(Unit) {
