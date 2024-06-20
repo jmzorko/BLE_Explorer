@@ -1,11 +1,13 @@
 package com.example.ble_explorer
 
 import android.Manifest
+import android.annotation.SuppressLint
 import android.bluetooth.BluetoothAdapter
 import android.bluetooth.le.ScanCallback
 import android.bluetooth.le.ScanResult
 import android.content.pm.PackageManager
 import android.os.Handler
+import android.os.Looper
 import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -14,7 +16,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -30,7 +31,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.core.app.ActivityCompat
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -38,23 +38,22 @@ import androidx.navigation.NavController
 fun DevicesScreen(navController: NavController, modifier: Modifier = Modifier) {
     var mainActivity = navController.context.findActivity() as MainActivity
     var scanner = BluetoothAdapter.getDefaultAdapter().bluetoothLeScanner
-    var scanHandler = Handler()
+    var scanHandler = Handler(Looper.getMainLooper())
     var isScanning = false
 
     val scanCallback: ScanCallback = object : ScanCallback() {
         override fun onScanResult(callbackType: Int, result: ScanResult?) {
             super.onScanResult(callbackType, result)
             result?.let {
-                mainActivity.viewModel?.let { vm ->
-                    vm.update(result)
-                }
+                mainActivity.viewModel?.let { vm -> vm.update(result) }
             }
         }
     }
 
+    @SuppressLint("MissingPermission")
     fun scan() {
-        Log.d("JMZ", "starting BLE scan")
         if (!isScanning) {
+            Log.d("JMZ", "starting BLE scan")
             scanHandler.postDelayed({
                 scanner.stopScan(scanCallback)
                 isScanning = false
@@ -119,17 +118,12 @@ fun DevicesScreen(navController: NavController, modifier: Modifier = Modifier) {
         }
     )
 
-    mainActivity.viewModel?.let {
-        it.devicesState?.let { devices ->
+    mainActivity.viewModel?.let { vm ->
+        vm.devicesState?.let { devices ->
             LazyColumn(modifier = modifier.padding(top = 128.dp)) {
-                items(devices) {
-                    Device(
-                        navController,
-                        it.device.name ?: "(no name)",
-                        it.device.address,
-                        it.rssi,
-                        it.device.bondState
-                    )
+                items(devices) { dev ->
+                    var connected = vm.connectedAddress.value.equals(dev.device.address)
+                    Device(navController, dev.device.name ?: "(no name)", dev.device.address, dev.rssi, connected, dev.device.bondState)
                 }
             }
         }

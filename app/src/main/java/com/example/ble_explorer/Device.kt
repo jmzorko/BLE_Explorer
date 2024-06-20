@@ -19,7 +19,7 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 
 @Composable
-fun Device(navController: NavController, name: String, address: String, rssi: Int, bondState: Int, modifier: Modifier = Modifier) {
+fun Device(navController: NavController, name: String, address: String, rssi: Int, connected: Boolean, bondState: Int, modifier: Modifier = Modifier) {
     val ctx = LocalContext.current
     var expanded = rememberSaveable { mutableStateOf(false) }
     val extraPadding = 0.dp/*by animateDpAsState(
@@ -53,7 +53,7 @@ fun Device(navController: NavController, name: String, address: String, rssi: In
                     navController.navigate(Screen.DeviceDetailScreen.route + "/${address}")
                 }
             ) {
-                Text("Connect")
+                Text(if (!connected) "Connect" else "Disconnect")
             }
         }
     }

@@ -6,7 +6,6 @@ import android.bluetooth.BluetoothGattServer
 import android.content.Context
 import android.util.Log
 import no.nordicsemi.android.ble.BleManager
-import no.nordicsemi.android.ble.WriteRequest
 import no.nordicsemi.android.ble.data.Data
 import no.nordicsemi.android.ble.ktx.suspendForResponse
 import no.nordicsemi.android.ble.response.ReadResponse
