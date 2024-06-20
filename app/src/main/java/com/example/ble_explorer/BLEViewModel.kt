@@ -17,46 +17,44 @@ class BLEViewModel(private val ctx: Context) : ViewModel() {
     var connectedAddress = mutableStateOf<String>("")
     var batteryLevel = mutableStateOf<Int>(0)
 
-    var bleManager = MyBleManager(
-        object: DataReceivedCallback {
+    var bleManager = MyBleManager(object: DataReceivedCallback {
             override fun onDataReceived(device: BluetoothDevice, data: Data) {
                 batteryLevel.value = data.getIntValue(Data.FORMAT_UINT8, 0)!!
-                Log.d("JMZ", "Battery level: ${batteryLevel.value}")
-            } },
-        context = ctx)
+                Log.d(TAG, "Battery level: ${batteryLevel.value}")
+            } }, context = ctx)
 
     init {
         bleManager.connectionObserver = object : ConnectionObserver {
             override fun onDeviceConnected(device: BluetoothDevice) {
-                Log.d("JMZ", "connection observer reports ${bleManager.connectionState}")
+                Log.d(TAG, "connection observer reports ${bleManager.connectionState}")
                 connectState.value = bleManager.connectionState
                 connectedAddress.value = device.address
             }
 
             override fun onDeviceDisconnected(device: BluetoothDevice, reason: Int) {
-                Log.d("JMZ", "connection observer reports ${bleManager.connectionState}")
+                Log.d(TAG, "connection observer reports ${bleManager.connectionState}")
                 connectState.value = bleManager.connectionState
                 connectedAddress.value = ""
             }
 
             override fun onDeviceFailedToConnect(device: BluetoothDevice, reason: Int) {
-                Log.d("JMZ", "connection observer reports ${bleManager.connectionState}")
+                Log.d(TAG, "connection observer reports ${bleManager.connectionState}")
                 connectState.value = bleManager.connectionState
                 connectedAddress.value = ""
             }
 
             override fun onDeviceConnecting(device: BluetoothDevice) {
-                Log.d("JMZ", "connection observer reports ${bleManager.connectionState}")
+                Log.d(TAG, "connection observer reports ${bleManager.connectionState}")
                 connectState.value = bleManager.connectionState
                 connectedAddress.value = ""
             }
 
             override fun onDeviceDisconnecting(device: BluetoothDevice) {
-                Log.d("JMZ", "connection observer reports ${bleManager.connectionState}")
+                Log.d(TAG, "connection observer reports ${bleManager.connectionState}")
             }
 
             override fun onDeviceReady(device: BluetoothDevice) {
-                Log.d("JMZ", "connection observer reports ${bleManager.connectionState}")
+                Log.d(TAG, "connection observer reports ${bleManager.connectionState}")
             }
         }
 
@@ -79,6 +77,10 @@ class BLEViewModel(private val ctx: Context) : ViewModel() {
 
     fun sort() {
         devicesState.sortWith(rssiComparator)
+    }
+
+    companion object {
+        private const val TAG = "BLEViewModel"
     }
 }
 
