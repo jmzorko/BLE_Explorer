@@ -53,7 +53,7 @@ fun Device(navController: NavController, name: String, address: String, rssi: In
                     navController.navigate(Screen.DeviceDetailScreen.route + "/${address}")
                 }
             ) {
-                Text(if (!connected) "Connect" else "Disconnect")
+                Text(if (!connected) "Connect" else "Connected")
             }
         }
     }
