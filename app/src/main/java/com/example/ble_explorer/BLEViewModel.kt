@@ -17,11 +17,14 @@ class BLEViewModel(private val ctx: Context) : ViewModel() {
     var connectedAddress = mutableStateOf<String>("")
     var batteryLevel = mutableStateOf<Int>(0)
 
-    var bleManager = MyBleManager(object: DataReceivedCallback {
-            override fun onDataReceived(device: BluetoothDevice, data: Data) {
-                batteryLevel.value = data.getIntValue(Data.FORMAT_UINT8, 0)!!
-                Log.d(TAG, "Battery level: ${batteryLevel.value}")
-            } }, context = ctx)
+    var batteryStateCallback = object: DataReceivedCallback {
+        override fun onDataReceived(device: BluetoothDevice, data: Data) {
+            batteryLevel.value = data.getIntValue(Data.FORMAT_UINT8, 0)!!
+            Log.d(TAG, "Battery level: ${batteryLevel.value}")
+        }
+    }
+
+    var bleManager = MyBleManager(batteryStateCallback, context = ctx)
 
     init {
         bleManager.connectionObserver = object : ConnectionObserver {
@@ -57,8 +60,6 @@ class BLEViewModel(private val ctx: Context) : ViewModel() {
                 Log.d(TAG, "connection observer reports ${bleManager.connectionState}")
             }
         }
-
-
     }
 
     fun update(result: ScanResult) {
