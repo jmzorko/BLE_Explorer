@@ -40,6 +40,7 @@ fun DevicesScreen(navController: NavController, modifier: Modifier = Modifier) {
     var scanner = BluetoothAdapter.getDefaultAdapter().bluetoothLeScanner
     var scanHandler = Handler(Looper.getMainLooper())
     var isScanning = false
+    var scanCount = 0
 
     val scanCallback: ScanCallback = object : ScanCallback() {
         override fun onScanResult(callbackType: Int, result: ScanResult?) {
@@ -48,6 +49,11 @@ fun DevicesScreen(navController: NavController, modifier: Modifier = Modifier) {
                 mainActivity.viewModel?.let { vm -> vm.update(result) }
             }
         }
+
+        override fun onScanFailed(errorCode: Int) {
+            super.onScanFailed(errorCode)
+            scanCount --
+        }
     }
 
     @SuppressLint("MissingPermission")
@@ -55,12 +61,15 @@ fun DevicesScreen(navController: NavController, modifier: Modifier = Modifier) {
         if (!isScanning) {
             Log.d("JMZ", "starting BLE scan")
             scanHandler.postDelayed({
-                scanner.stopScan(scanCallback)
-                isScanning = false
+                if (scanCount > 0) {
+                    scanner.stopScan(scanCallback)
+                    isScanning = false
+                }
             }, 10000)
 
             isScanning = true
             scanner.startScan(scanCallback)
+            scanCount ++
         }
     }
 
@@ -108,7 +117,13 @@ fun DevicesScreen(navController: NavController, modifier: Modifier = Modifier) {
             Row {
                 Text(stringResource(R.string.app_name))
 
-                IconButton(modifier = Modifier.padding(end = 5.dp), onClick = { scan() }) {
+                IconButton(modifier = Modifier.padding(end = 5.dp), onClick = {
+                    mainActivity.viewModel?.let {
+                        it.clearDevices()
+                    }
+
+                    scan()
+                }) {
                     Icon(
                         imageVector = Icons.Filled.Refresh,
                         contentDescription = ""

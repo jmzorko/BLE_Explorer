@@ -62,6 +62,18 @@ class BLEViewModel(private val ctx: Context) : ViewModel() {
         }
     }
 
+    fun clearDevices() {
+        val found = devicesState.find {
+            it.device.address.equals(connectedAddress.value)
+        }?.clone()
+
+        devicesState.clear()
+
+        found?.let {
+            devicesState.add(found)
+        }
+    }
+
     fun update(result: ScanResult) {
         var dev = DeviceScanResult(result.rssi, result.device)
         val found = devicesState.find {

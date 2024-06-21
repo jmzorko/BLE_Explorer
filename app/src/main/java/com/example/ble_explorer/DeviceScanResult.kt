@@ -7,3 +7,7 @@ data class DeviceScanResult(
     var rssi: Int,
     var device: BluetoothDevice
 )
+
+fun DeviceScanResult.clone() : DeviceScanResult {
+    return DeviceScanResult(rssi, device)
+}
