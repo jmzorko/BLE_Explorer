@@ -11,6 +11,7 @@ import android.os.Looper
 import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
@@ -114,8 +115,10 @@ fun DevicesScreen(navController: NavController, modifier: Modifier = Modifier) {
             titleContentColor = MaterialTheme.colorScheme.primary,
         ),
         title = {
-            Row {
-                Text(stringResource(R.string.app_name))
+            Row(modifier = Modifier.padding(0.dp)) {
+                Column(modifier = modifier.weight(1f)) {
+                    Text(stringResource(R.string.app_name))
+                }
 
                 IconButton(modifier = Modifier.padding(end = 5.dp), onClick = {
                     mainActivity.viewModel?.let {
