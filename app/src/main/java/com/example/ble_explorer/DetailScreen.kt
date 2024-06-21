@@ -40,22 +40,8 @@ fun DetailScreen(navController: NavController, deviceAddress: String, modifier: 
     var batteryLevel = remember { mainActivity.viewModel!!.batteryLevel}
     var stateString = getConnectedStateString(connectState.value)
 
-    LaunchedEffect(Unit) {
-        coroutineScope.launch {
-            try {
-                bleManager?.let {
-                    bleManager.connect(device)
-                        .retry(3, 100)
-                        .timeout(15_000)
-                        .useAutoConnect(true)
-                        .suspend()
-
-                    batteryLevel.value = bleManager.getBatteryLevel()!!
-                }
-            } catch (e: Exception) {
-                //connectState = bleManager?.connectionState ?: BluetoothGatt.STATE_DISCONNECTED
-            }
-        }
+     LaunchedEffect(Unit) {
+        mainActivity.viewModel!!.connect(device)
     }
 
     TopAppBar(

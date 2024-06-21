@@ -7,8 +7,12 @@ import android.util.Log
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import no.nordicsemi.android.ble.callback.DataReceivedCallback
 import no.nordicsemi.android.ble.data.Data
+import no.nordicsemi.android.ble.ktx.suspend
 import no.nordicsemi.android.ble.observer.ConnectionObserver
 
 class BLEViewModel(private val ctx: Context) : ViewModel() {
@@ -107,6 +111,32 @@ class BLEViewModel(private val ctx: Context) : ViewModel() {
         }
 
         sort()
+
+        /*if (connectedAddress.value == null) {
+            savedDevice()?.let {
+                if (result.device.address.equals(it)) {
+                    connect(result.device)
+                }
+            }
+        }*/ // FIXME not the correct place for this code as update() can get called often before a device connects
+    }
+
+    fun connect(device: BluetoothDevice) {
+        viewModelScope.launch(Dispatchers.IO) {
+            try {
+                bleManager?.let {
+                    bleManager.connect(device)
+                        .retry(3, 100)
+                        .timeout(15_000)
+                        .useAutoConnect(true)
+                        .suspend()
+
+                    batteryLevel.value = bleManager.getBatteryLevel()!!
+                }
+            } catch (e: Exception) {
+                //connectState = bleManager?.connectionState ?: BluetoothGatt.STATE_DISCONNECTED
+            }
+        }
     }
 
     fun sort() {
