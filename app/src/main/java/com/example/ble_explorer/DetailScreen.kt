@@ -41,7 +41,7 @@ fun DetailScreen(navController: NavController, deviceAddress: String, modifier: 
     var stateString = getConnectedStateString(connectState.value)
 
      LaunchedEffect(Unit) {
-        mainActivity.viewModel!!.connect(device)
+        mainActivity.viewModel!!.connect(device)    // FIXME get rid of !! if possible
     }
 
     TopAppBar(
