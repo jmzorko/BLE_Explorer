@@ -74,6 +74,27 @@ class BLEViewModel(private val ctx: Context) : ViewModel() {
         }
     }
 
+    fun saveDevice(device: BluetoothDevice) {
+        val prefs = ctx.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+        with(prefs.edit()) {
+            putString("save_device", device.address)
+            apply()
+        }
+    }
+
+    fun forgetSavedDevice() {
+        val prefs = ctx.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+        with(prefs.edit()) {
+            remove("save_device")
+            apply()
+        }
+    }
+
+    fun savedDevice() : String? {
+        val prefs = ctx.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+        return prefs.getString("save_device", null)
+    }
+
     fun update(result: ScanResult) {
         var dev = DeviceScanResult(result.rssi, result.device)
         val found = devicesState.find {
@@ -94,6 +115,7 @@ class BLEViewModel(private val ctx: Context) : ViewModel() {
 
     companion object {
         private const val TAG = "BLEViewModel"
+        private const val PREFS = "BLE_Explorer"
     }
 }
 
