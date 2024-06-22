@@ -40,7 +40,7 @@ fun DetailScreen(navController: NavController, deviceAddress: String, modifier: 
     var batteryLevel = remember { mainActivity.viewModel!!.batteryLevel}
     var stateString = getConnectedStateString(connectState.value)
 
-     LaunchedEffect(Unit) {
+    LaunchedEffect(Unit) {
         mainActivity.viewModel!!.connect(device)    // FIXME get rid of !! if possible
     }
 

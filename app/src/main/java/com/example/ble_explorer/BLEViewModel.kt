@@ -5,6 +5,7 @@ import android.bluetooth.le.ScanResult
 import android.content.Context
 import android.util.Log
 import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -19,6 +20,7 @@ class BLEViewModel(private val ctx: Context) : ViewModel() {
     var devicesState = mutableStateListOf<DeviceScanResult>()
     var connectState = mutableStateOf<Int>(0)
     var connectedAddress = mutableStateOf<String>("")
+    var connectedAddresses = mutableStateListOf<String>()
     var batteryLevel = mutableStateOf<Int>(0)
 
     var batteryStateCallback = object: DataReceivedCallback {
@@ -36,24 +38,29 @@ class BLEViewModel(private val ctx: Context) : ViewModel() {
                 Log.d(TAG, "connection observer reports ${bleManager.connectionState}")
                 connectState.value = bleManager.connectionState
                 connectedAddress.value = device.address
+                connectedAddresses.filter { it != device.address }
+                connectedAddresses.add(device.address)
             }
 
             override fun onDeviceDisconnected(device: BluetoothDevice, reason: Int) {
                 Log.d(TAG, "connection observer reports ${bleManager.connectionState}")
                 connectState.value = bleManager.connectionState
                 connectedAddress.value = ""
+                connectedAddresses.filter { it != device.address }
             }
 
             override fun onDeviceFailedToConnect(device: BluetoothDevice, reason: Int) {
                 Log.d(TAG, "connection observer reports ${bleManager.connectionState}")
                 connectState.value = bleManager.connectionState
                 connectedAddress.value = ""
+                connectedAddresses.filter { it != device.address }
             }
 
             override fun onDeviceConnecting(device: BluetoothDevice) {
                 Log.d(TAG, "connection observer reports ${bleManager.connectionState}")
                 connectState.value = bleManager.connectionState
                 connectedAddress.value = ""
+                connectedAddresses.filter { it != device.address }
             }
 
             override fun onDeviceDisconnecting(device: BluetoothDevice) {
@@ -107,7 +114,7 @@ class BLEViewModel(private val ctx: Context) : ViewModel() {
         if (found == null) {
             devicesState.add(dev)
         } else {
-            found.rssi = result.rssi
+            found.rssi = result.rssi    // FIXME results jump around in the list due to changing RSSI. Try only using the 10s digit of RSSI to sort.
         }
 
         sort()
