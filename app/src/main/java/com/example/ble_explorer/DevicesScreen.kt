@@ -1,13 +1,7 @@
 package com.example.ble_explorer
 
 import android.Manifest
-import android.annotation.SuppressLint
-import android.bluetooth.BluetoothAdapter
-import android.bluetooth.le.ScanCallback
-import android.bluetooth.le.ScanResult
 import android.content.pm.PackageManager
-import android.os.Handler
-import android.os.Looper
 import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -38,41 +32,6 @@ import androidx.navigation.NavController
 @Composable
 fun DevicesScreen(navController: NavController, modifier: Modifier = Modifier) {
     var mainActivity = navController.context.findActivity() as MainActivity
-    var scanner = BluetoothAdapter.getDefaultAdapter().bluetoothLeScanner
-    var scanHandler = Handler(Looper.getMainLooper())
-    var isScanning = false
-    var scanCount = 0
-
-    val scanCallback: ScanCallback = object : ScanCallback() {
-        override fun onScanResult(callbackType: Int, result: ScanResult?) {
-            super.onScanResult(callbackType, result)
-            result?.let {
-                mainActivity.viewModel?.let { vm -> vm.update(result) }
-            }
-        }
-
-        override fun onScanFailed(errorCode: Int) {
-            super.onScanFailed(errorCode)
-            scanCount --
-        }
-    }
-
-    @SuppressLint("MissingPermission")
-    fun scan() {
-        if (!isScanning) {
-            Log.d("JMZ", "starting BLE scan")
-            scanHandler.postDelayed({
-                if (scanCount > 0) {
-                    scanner.stopScan(scanCallback)
-                    isScanning = false
-                }
-            }, 10000)
-
-            isScanning = true
-            scanner.startScan(scanCallback)
-            scanCount ++
-        }
-    }
 
     val bluetoothPermissionResultLauncher = rememberLauncherForActivityResult(contract = ActivityResultContracts.RequestMultiplePermissions()) {
         var good = false
@@ -88,7 +47,7 @@ fun DevicesScreen(navController: NavController, modifier: Modifier = Modifier) {
         }
 
         if (good) { // FIXME if user declines permissions twice, consider sending them to the app Settings page to grant them
-            scan()
+            mainActivity.viewModel?.startDeviceScan()
         }
     }
 
@@ -97,7 +56,7 @@ fun DevicesScreen(navController: NavController, modifier: Modifier = Modifier) {
     when (PackageManager.PERMISSION_GRANTED) {
         ActivityCompat.checkSelfPermission(ctx, Manifest.permission.BLUETOOTH_SCAN) -> {
             Log.d("JMZ", "needs BLUETOOTH_SCAN")
-            scan()
+            mainActivity.viewModel?.startDeviceScan()
         }
         ActivityCompat.checkSelfPermission(ctx, Manifest.permission.BLUETOOTH_CONNECT) -> {
             Log.d("JMZ", "needs BLUETOOTH_CONNECT")
@@ -125,7 +84,8 @@ fun DevicesScreen(navController: NavController, modifier: Modifier = Modifier) {
                         it.clearDevices()
                     }
 
-                    scan()
+                    mainActivity.viewModel?.stopDeviceScan()
+                    mainActivity.viewModel?.startDeviceScan()
                 }) {
                     Icon(
                         imageVector = Icons.Filled.Refresh,
