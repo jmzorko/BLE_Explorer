@@ -55,8 +55,7 @@ class MyBleManager(batteryChangedCallback: DataReceivedCallback, context: Contex
         // This means e.g. enabling notifications, setting notification callbacks, or writing
         // something to a Control Point characteristic.
         // Kotlin projects should not use suspend methods here, as this method does not suspend.
-        requestMtu(517)
-            .enqueue()
+        requestMtu(517).enqueue()
 
         enableNotifications(batteryChar).enqueue()
         setNotificationCallback(batteryChar).with(batteryCallback)
