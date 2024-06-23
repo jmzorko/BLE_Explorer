@@ -35,17 +35,24 @@ class BLEViewModel(private val ctx: Context) : ViewModel() {
 
     var scanHandler = Handler(Looper.getMainLooper())
     var isScanning = false
-    var scanCount = 0
+    var scanStartedCount = 0
+    var lastScanTimeSeconds: Long = 0
+    var scanStartedTimeSeconds = System.currentTimeMillis() / 1000
 
     val scanCallback: ScanCallback = object : ScanCallback() {
         override fun onScanResult(callbackType: Int, result: ScanResult?) {
             super.onScanResult(callbackType, result)
-            result?.let { update(result) }
+            val currentTimeInSeconds = System.currentTimeMillis() / 1000
+            if (currentTimeInSeconds > lastScanTimeSeconds || currentTimeInSeconds < scanStartedTimeSeconds + FAST_SCAN_THRESHOLD_SECONDS) {
+                lastScanTimeSeconds = currentTimeInSeconds
+                Log.d(TAG, "updating list")
+                result?.let { update(result) }
+            }
         }
 
         override fun onScanFailed(errorCode: Int) {
             super.onScanFailed(errorCode)
-            scanCount --
+            scanStartedCount --
         }
     }
 
@@ -67,12 +74,12 @@ class BLEViewModel(private val ctx: Context) : ViewModel() {
 
             val settings = ScanSettings.Builder().setScanMode(ScanSettings.SCAN_MODE_LOW_POWER).build()
             scanner.startScan(filters, settings, scanCallback)
-            scanCount ++
+            scanStartedCount ++
         }
     }
 
     fun stopDeviceScan() {
-        if (scanCount > 0) {
+        if (scanStartedCount > 0) {
             scanner.stopScan(scanCallback)
             isScanning = false
         }
@@ -229,6 +236,7 @@ class BLEViewModel(private val ctx: Context) : ViewModel() {
     companion object {
         private const val TAG = "BLEViewModel"
         private const val PREFS = "BLE_Explorer"
+        private const val FAST_SCAN_THRESHOLD_SECONDS = 5
     }
 }
 
