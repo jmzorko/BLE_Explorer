@@ -31,68 +31,70 @@ import no.nordicsemi.android.ble.ktx.suspend
 @Composable
 fun DetailScreen(navController: NavController, deviceAddress: String, modifier: Modifier = Modifier) {
     val coroutineScope = rememberCoroutineScope()
-    //var batteryLevel = remember { mutableStateOf<Int>(0) }
 
     var mainActivity = navController.context.findActivity() as MainActivity
-    var bleManager = mainActivity.viewModel?.bleManager
     var device = BluetoothAdapter.getDefaultAdapter().getRemoteDevice(deviceAddress)
-    var connectState = remember { mainActivity.viewModel!!.connectState }
-    var batteryLevel = remember { mainActivity.viewModel!!.batteryLevel}
-    var stateString = getConnectedStateString(connectState.value)
 
-    LaunchedEffect(Unit) {
-        mainActivity.viewModel!!.connect(device)    // FIXME get rid of !! if possible
-    }
+    mainActivity.viewModel?.let { vm ->
+        var bleManager = vm.bleManager
+        var connectState = remember { vm.connectState }
+        var batteryLevel = remember { vm.batteryLevel }
+        var stateString = getConnectedStateString(connectState.value)
 
-    TopAppBar(
-        colors = TopAppBarDefaults.topAppBarColors(
-            containerColor = MaterialTheme.colorScheme.primaryContainer,
-            titleContentColor = MaterialTheme.colorScheme.primary,
-        ),
-        title = {
-            Log.d("JMZ", "connection state: ${stateString}")
-
-            Row {
-                IconButton(onClick = { navController.popBackStack() }) {
-                    Icon(
-                        imageVector = Icons.Filled.ArrowBack,
-                        contentDescription = ""
-                    )
-                }
-                Text("${device.name ?: device.address} ... $stateString")
-            }
+        LaunchedEffect(Unit) {
+            vm.connect(device)
         }
-    )
 
-    if (connectState.value == BluetoothGatt.STATE_CONNECTED) {
-        Column(modifier = modifier.padding(top = 128.dp)) {
-            Row {
-                if (batteryLevel.value >= 0) {
-                    Text("Battery: ${batteryLevel.value}")
-                } else {
-                    Text("Battery info unavailable")
-                }
-            }
+        TopAppBar(
+            colors = TopAppBarDefaults.topAppBarColors(
+                containerColor = MaterialTheme.colorScheme.primaryContainer,
+                titleContentColor = MaterialTheme.colorScheme.primary,
+            ),
+            title = {
+                Log.d("JMZ", "connection state: ${stateString}")
 
-            if (!device.name.isNullOrBlank()) {
                 Row {
-                    Text("${device.name}")
+                    IconButton(onClick = { navController.popBackStack() }) {
+                        Icon(
+                            imageVector = Icons.Filled.ArrowBack,
+                            contentDescription = ""
+                        )
+                    }
+                    Text("${device.name ?: device.address} ... $stateString")
                 }
             }
+        )
 
-            Row {
-                Text("${device.address}")
-            }
-
-            Row {
-                Button(modifier = Modifier.size(width = 160.dp, height = 40.dp),
-                    onClick = {
-                        bleManager?.let {
-                            bleManager.disconnect().enqueue()
-                        }
+        if (connectState.value == BluetoothGatt.STATE_CONNECTED) {
+            Column(modifier = modifier.padding(top = 128.dp)) {
+                Row {
+                    if (batteryLevel.value >= 0) {
+                        Text("Battery: ${batteryLevel.value}")
+                    } else {
+                        Text("Battery info unavailable")
                     }
-                ) {
-                    Text("Disconnect")
+                }
+
+                if (!device.name.isNullOrBlank()) {
+                    Row {
+                        Text("${device.name}")
+                    }
+                }
+
+                Row {
+                    Text("${device.address}")
+                }
+
+                Row {
+                    Button(modifier = Modifier.size(width = 160.dp, height = 40.dp),
+                        onClick = {
+                            bleManager?.let {
+                                bleManager.disconnect().enqueue()
+                            }
+                        }
+                    ) {
+                        Text("Disconnect")
+                    }
                 }
             }
         }
