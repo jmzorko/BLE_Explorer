@@ -21,6 +21,7 @@ import no.nordicsemi.android.ble.callback.DataReceivedCallback
 import no.nordicsemi.android.ble.data.Data
 import no.nordicsemi.android.ble.ktx.suspend
 import no.nordicsemi.android.ble.observer.ConnectionObserver
+import kotlin.math.abs
 
 
 class BLEViewModel(private val ctx: Context) : ViewModel() {
@@ -66,7 +67,6 @@ class BLEViewModel(private val ctx: Context) : ViewModel() {
 
             val settings = ScanSettings.Builder().setScanMode(ScanSettings.SCAN_MODE_LOW_POWER).build()
             scanner.startScan(filters, settings, scanCallback)
-            //scanner.startScan(scanCallback)
             scanCount ++
         }
     }
@@ -166,13 +166,29 @@ class BLEViewModel(private val ctx: Context) : ViewModel() {
         val found = devicesState.find {
             it.device.address.equals(dev.device.address)
         }
+
+        var shouldSort = false
+
         if (found == null) {
             devicesState.add(dev)
+            shouldSort = true
         } else {
-            found.rssi = (Math.round((result.rssi / 10).toDouble()) * 10).toInt()    // so results don't jump around so much
+            if (abs(found.rssi - result.rssi) > 10) {
+                found.rssi = result.rssi
+                shouldSort = true
+            }
+            /*val newRssiScaled = scaleRSSI(result.rssi)    // so results don't jump around so much
+            val oldRssiScaled = scaleRSSI(found.rssi)
+            if (newRssiScaled != oldRssiScaled) {
+                found.rssi = newRssiScaled
+                shouldSort = true
+                Log.d(TAG, "orig scaled RSSI: ${oldRssiScaled} new scaled RSSI: ${newRssiScaled}, re-sorting")
+            }*/
         }
 
-        sort()
+        if (shouldSort) {
+            sort()
+        }
 
         /*if (connectedAddress.value == null) {
             savedDevice()?.let {
@@ -181,6 +197,11 @@ class BLEViewModel(private val ctx: Context) : ViewModel() {
                 }
             }
         }*/ // FIXME not the correct place for this code as update() can get called often before a device connects
+    }
+
+    fun scaleRSSI(rssi: Int) : Int {
+        val scaled = (Math.round((rssi / 10).toDouble()) * 10).toInt()
+        return scaled
     }
 
     fun connect(device: BluetoothDevice) {
