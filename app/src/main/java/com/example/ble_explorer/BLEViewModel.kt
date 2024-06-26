@@ -96,14 +96,20 @@ class BLEViewModel(private val ctx: Context) : ViewModel() {
     }
 
     fun clearDevices() {
-        val found = devicesState.find {
-            it.device.address.equals(connectedAddress.value)
-        }?.clone()
+        var alreadyConnectedDevices = mutableListOf<DeviceScanResult>()
+
+        devicesState.forEach { dev ->
+            connectedAddresses.find { addr ->
+                addr.equals(dev.device.address)
+            }?.let {
+                alreadyConnectedDevices.add(dev.clone())
+            }
+        }
 
         devicesState.clear()
 
-        found?.let {
-            devicesState.add(found)
+        alreadyConnectedDevices.forEach { dev ->
+            devicesState.add(dev)
         }
     }
 
@@ -154,6 +160,7 @@ class BLEViewModel(private val ctx: Context) : ViewModel() {
         }
 
         if (shouldSort) {
+            Log.d(TAG, "JMZ sorting")
             sort()
         }
 
