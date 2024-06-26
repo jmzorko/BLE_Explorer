@@ -12,6 +12,7 @@ import android.os.Handler
 import android.os.Looper
 import android.util.Log
 import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -27,6 +28,7 @@ import kotlin.math.abs
 class BLEViewModel(private val ctx: Context) : ViewModel() {
     var devicesState = mutableStateListOf<DeviceScanResult>()
     var connectState = mutableStateOf<Int>(0)
+    var connectedStates = mutableStateMapOf<String, Int>()
     var connectedAddress = mutableStateOf<String>("")
     var connectedAddresses = mutableStateListOf<String>()
     var batteryLevel = mutableStateOf<Int>(0)
@@ -99,6 +101,7 @@ class BLEViewModel(private val ctx: Context) : ViewModel() {
             override fun onDeviceConnected(device: BluetoothDevice) {
                 Log.d(TAG, "connection observer reports ${bleManager.connectionState}")
                 connectState.value = bleManager.connectionState
+                connectedStates[device.address] = bleManager.connectionState
                 connectedAddress.value = device.address
                 connectedAddresses.filter { it != device.address }
                 connectedAddresses.add(device.address)
@@ -107,6 +110,7 @@ class BLEViewModel(private val ctx: Context) : ViewModel() {
             override fun onDeviceDisconnected(device: BluetoothDevice, reason: Int) {
                 Log.d(TAG, "connection observer reports ${bleManager.connectionState}")
                 connectState.value = bleManager.connectionState
+                connectedStates[device.address] = bleManager.connectionState
                 connectedAddress.value = ""
                 connectedAddresses.filter { it != device.address }
             }
@@ -114,6 +118,7 @@ class BLEViewModel(private val ctx: Context) : ViewModel() {
             override fun onDeviceFailedToConnect(device: BluetoothDevice, reason: Int) {
                 Log.d(TAG, "connection observer reports ${bleManager.connectionState}")
                 connectState.value = bleManager.connectionState
+                connectedStates[device.address] = bleManager.connectionState
                 connectedAddress.value = ""
                 connectedAddresses.filter { it != device.address }
             }
@@ -121,6 +126,7 @@ class BLEViewModel(private val ctx: Context) : ViewModel() {
             override fun onDeviceConnecting(device: BluetoothDevice) {
                 Log.d(TAG, "connection observer reports ${bleManager.connectionState}")
                 connectState.value = bleManager.connectionState
+                connectedStates[device.address] = bleManager.connectionState
                 connectedAddress.value = ""
                 connectedAddresses.filter { it != device.address }
             }
