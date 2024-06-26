@@ -37,7 +37,7 @@ fun DetailScreen(navController: NavController, deviceAddress: String, modifier: 
     var device = BluetoothAdapter.getDefaultAdapter().getRemoteDevice(deviceAddress)
 
     mainActivity.viewModel?.let { vm ->
-        var bleManager = vm.bleManager
+        var bleManager = vm.bleManagerMap[deviceAddress]
         var connectState = remember { vm.connectedStates[deviceAddress] }
         var connectedStates = remember { vm.connectedStates.toMap() }
         var batteryLevel = remember { vm.batteryLevel }
