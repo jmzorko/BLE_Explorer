@@ -39,15 +39,15 @@ class BLEViewModel(private val ctx: Context) : ViewModel() {
     var scanHandler = Handler(Looper.getMainLooper())
     var isScanning = false
     var scanStartedCount = 0
-    var lastScanTimeSeconds: Long = 0
+    var lastScanTimeScaled: Long = 0
     var scanStartedTimeSeconds = System.currentTimeMillis() / 1000
 
     val scanCallback: ScanCallback = object : ScanCallback() {
         override fun onScanResult(callbackType: Int, result: ScanResult?) {
             super.onScanResult(callbackType, result)
-            val currentTimeInSeconds = System.currentTimeMillis() / 1000
-            if (currentTimeInSeconds > lastScanTimeSeconds || currentTimeInSeconds < scanStartedTimeSeconds + FAST_SCAN_THRESHOLD_SECONDS) {
-                lastScanTimeSeconds = currentTimeInSeconds
+            val currentTimeScaled = System.currentTimeMillis() / TIME_SCALE
+            if (currentTimeScaled > lastScanTimeScaled || currentTimeScaled < scanStartedTimeSeconds + FAST_SCAN_THRESHOLD_SECONDS) {
+                lastScanTimeScaled = currentTimeScaled
                 Log.d(TAG, "updating list")
                 result?.let { update(result) }
             }
@@ -146,7 +146,7 @@ class BLEViewModel(private val ctx: Context) : ViewModel() {
             devicesState.add(dev)
             shouldSort = true
         } else {
-            if (abs(found.rssi - result.rssi) > 10) {
+            if (abs(found.rssi - result.rssi) > RSSI_SCALE) {
                 found.rssi = result.rssi
                 shouldSort = true
             }
@@ -256,6 +256,8 @@ class BLEViewModel(private val ctx: Context) : ViewModel() {
         private const val TAG = "BLEViewModel"
         private const val PREFS = "BLE_Explorer"
         private const val FAST_SCAN_THRESHOLD_SECONDS = 5
+        private const val TIME_SCALE = 100
+        private const val RSSI_SCALE = 1
     }
 }
 
