@@ -178,7 +178,7 @@ class BLEViewModel(private val ctx: Context) : ViewModel() {
         return scaled
     }
 
-    fun createNewConnectionMgr() : MyBleManager {
+    fun createNewConnectionMgr(deviceAddress: String) : MyBleManager {
         var bleManager = MyBleManager(batteryStateCallback, context = ctx)
 
         bleManager.connectionObserver = object : ConnectionObserver {
@@ -196,7 +196,7 @@ class BLEViewModel(private val ctx: Context) : ViewModel() {
                 connectState.value = bleManager.connectionState
                 connectedStates[device.address] = bleManager.connectionState
                 connectedAddress.value = ""
-                connectedAddresses.filter { it != device.address }
+                connectedAddresses.remove(device.address)
             }
 
             override fun onDeviceFailedToConnect(device: BluetoothDevice, reason: Int) {
@@ -224,12 +224,13 @@ class BLEViewModel(private val ctx: Context) : ViewModel() {
             }
         }
 
+        bleManagerMap[deviceAddress] = bleManager
         return bleManager
     }
 
     fun connect(device: BluetoothDevice) {
         viewModelScope.launch(Dispatchers.IO) {
-            var bleManager = this@BLEViewModel.bleManagerMap[device.address] ?: createNewConnectionMgr()
+            var bleManager = this@BLEViewModel.bleManagerMap[device.address] ?: createNewConnectionMgr(device.address)
 
             try {
                 Log.d(TAG, "JMZ connecting to ${device.address}")
