@@ -24,9 +24,6 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
-import kotlinx.coroutines.launch
-import no.nordicsemi.android.ble.BleManager
-import no.nordicsemi.android.ble.ktx.suspend
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -38,10 +35,11 @@ fun DetailScreen(navController: NavController, deviceAddress: String, modifier: 
 
     mainActivity.viewModel?.let { vm ->
         var bleManager = vm.bleManagerMap[deviceAddress]
-        var connectState = remember { vm.connectedStates[deviceAddress] }
-        var connectedStates = remember { vm.connectedStates.toMap() }
+        var connectedStates = remember { vm.connectedStates }
         var batteryLevel = remember { vm.batteryLevel }
-        var stateString = connectState?.let { getConnectedStateString(it/*.value*/) }
+        var stateString = connectedStates[deviceAddress]?.let {
+            getConnectedStateString(it)
+        }
 
         LaunchedEffect(Unit) {
             vm.connect(device)
@@ -67,7 +65,7 @@ fun DetailScreen(navController: NavController, deviceAddress: String, modifier: 
             }
         )
 
-        if (connectState/*.value*/ == BluetoothGatt.STATE_CONNECTED) {
+        if (connectedStates[deviceAddress] == BluetoothGatt.STATE_CONNECTED) {
             Column(modifier = modifier.padding(top = 128.dp)) {
                 Row {
                     if (batteryLevel.value >= 0) {
