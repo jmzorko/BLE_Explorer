@@ -36,7 +36,7 @@ fun DetailScreen(navController: NavController, deviceAddress: String, modifier: 
     mainActivity.viewModel?.let { vm ->
         var bleManager = vm.bleManagerMap[deviceAddress]
         var connectedStates = remember { vm.connectedStates }
-        var batteryLevel = remember { vm.batteryLevel }
+        var batteryLevels = remember { vm.batteryLevels }
         var stateString = connectedStates[deviceAddress]?.let {
             getConnectedStateString(it)
         }
@@ -68,10 +68,12 @@ fun DetailScreen(navController: NavController, deviceAddress: String, modifier: 
         if (connectedStates[deviceAddress] == BluetoothGatt.STATE_CONNECTED) {
             Column(modifier = modifier.padding(top = 128.dp)) {
                 Row {
-                    if (batteryLevel.value >= 0) {
-                        Text("Battery: ${batteryLevel.value}")
-                    } else {
-                        Text("Battery info unavailable")
+                    batteryLevels[deviceAddress]?.let { batt ->
+                        if (batt >= 0) {
+                            Text("Battery: ${batt}")
+                        } else {
+                            Text("Battery info unavailable")
+                        }
                     }
                 }
 

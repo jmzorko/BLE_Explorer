@@ -13,7 +13,6 @@ import android.os.Looper
 import android.util.Log
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateMapOf
-import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.Dispatchers
@@ -27,11 +26,9 @@ import kotlin.math.abs
 
 class BLEViewModel(private val ctx: Context) : ViewModel() {
     var devicesState = mutableStateListOf<DeviceScanResult>()
-    var connectState = mutableStateOf<Int>(0)
     var connectedStates = mutableStateMapOf<String, Int>()
-    var connectedAddress = mutableStateOf<String>("")
+    var batteryLevels = mutableStateMapOf<String, Int>()
     var connectedAddresses = mutableStateListOf<String>()
-    var batteryLevel = mutableStateOf<Int>(0)
 
     var scanner = BluetoothAdapter.getDefaultAdapter().bluetoothLeScanner
     var bleManagerMap = mutableMapOf<String, MyBleManager>()
@@ -90,8 +87,7 @@ class BLEViewModel(private val ctx: Context) : ViewModel() {
 
     var batteryStateCallback = object: DataReceivedCallback {
         override fun onDataReceived(device: BluetoothDevice, data: Data) {
-            batteryLevel.value = data.getIntValue(Data.FORMAT_UINT8, 0)!!
-            Log.d(TAG, "Battery level: ${batteryLevel.value}")
+            batteryLevels[device.address] = data.getIntValue(Data.FORMAT_UINT8, 0)!!
         }
     }
 
@@ -184,35 +180,30 @@ class BLEViewModel(private val ctx: Context) : ViewModel() {
         bleManager.connectionObserver = object : ConnectionObserver {
             override fun onDeviceConnected(device: BluetoothDevice) {
                 Log.d(TAG, "JMZ connection observer reports ${bleManager.connectionState} for device ${device.address}")
-                connectState.value = bleManager.connectionState
                 connectedStates[device.address] = bleManager.connectionState
-                connectedAddress.value = device.address
-                //connectedAddresses.filter { it != device.address }
-                connectedAddresses.add(device.address)
+
+                if (!connectedAddresses.contains(device.address)) {
+                    connectedAddresses.add(device.address)
+                }
             }
 
             override fun onDeviceDisconnected(device: BluetoothDevice, reason: Int) {
                 Log.d(TAG, "JMZ connection observer reports ${bleManager.connectionState} for device ${device.address}")
-                connectState.value = bleManager.connectionState
                 connectedStates[device.address] = bleManager.connectionState
-                connectedAddress.value = ""
-                connectedAddresses.remove(device.address)
+
+                if (connectedAddresses.contains(device.address)) {
+                    connectedAddresses.remove(device.address)
+                }
             }
 
             override fun onDeviceFailedToConnect(device: BluetoothDevice, reason: Int) {
                 Log.d(TAG, "JMZ connection observer reports ${bleManager.connectionState} for device ${device.address}")
-                connectState.value = bleManager.connectionState
                 connectedStates[device.address] = bleManager.connectionState
-                connectedAddress.value = ""
-                connectedAddresses.filter { it != device.address }
             }
 
             override fun onDeviceConnecting(device: BluetoothDevice) {
                 Log.d(TAG, "JMZ connection observer reports ${bleManager.connectionState} for device ${device.address}")
-                connectState.value = bleManager.connectionState
                 connectedStates[device.address] = bleManager.connectionState
-                connectedAddress.value = ""
-                //connectedAddresses.filter { it != device.address }
             }
 
             override fun onDeviceDisconnecting(device: BluetoothDevice) {
@@ -240,11 +231,10 @@ class BLEViewModel(private val ctx: Context) : ViewModel() {
                     .useAutoConnect(true)
                     .suspend()
 
-                batteryLevel.value = bleManager.getBatteryLevel()!!
+                batteryLevels[device.address] = bleManager.getBatteryLevel()!!
             } catch (e: Exception) {
                 Log.d(TAG, "JMZ exception ${e} while trying to connect to ${device.address}")
                 e.printStackTrace()
-                //connectState = bleManager?.connectionState ?: BluetoothGatt.STATE_DISCONNECTED
             }
         }
     }
