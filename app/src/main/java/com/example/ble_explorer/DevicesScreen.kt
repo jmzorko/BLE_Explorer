@@ -81,6 +81,7 @@ fun DevicesScreen(navController: NavController, modifier: Modifier = Modifier) {
 
                 IconButton(modifier = Modifier.padding(end = 5.dp), onClick = {
                     mainActivity.viewModel?.let {
+                        it.scanStartedTimeSeconds = System.currentTimeMillis() / 1000
                         it.clearDevices()
                     }
 
@@ -100,7 +101,7 @@ fun DevicesScreen(navController: NavController, modifier: Modifier = Modifier) {
         vm.devicesState?.let { devices ->
             LazyColumn(modifier = modifier.padding(top = 128.dp)) {
                 items(devices) { dev ->
-                    var connected = vm.connectedAddress.value.equals(dev.device.address)
+                    var connected = vm.connectedAddresses.contains(dev.device.address)
                     Device(navController, dev.device.name ?: "(no name)", dev.device.address, dev.rssi, connected, dev.device.bondState)
                 }
             }
