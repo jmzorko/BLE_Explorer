@@ -185,6 +185,20 @@ class BLEViewModel(private val ctx: Context) : ViewModel() {
                 if (!connectedAddresses.contains(device.address)) {
                     connectedAddresses.add(device.address)
                 }
+
+                var found = false
+                for (d in devicesState) {
+                    if (d.device.address.equals(device.address)) {
+                        found = true
+                        break
+                    }
+                }
+
+                // if we didn't find the connected device in the scanned devices list, add it
+                if (!found) {
+                    val scanResult = DeviceScanResult(10, device)
+                    devicesState.add(scanResult)
+                }
             }
 
             override fun onDeviceDisconnected(device: BluetoothDevice, reason: Int) {
