@@ -13,6 +13,7 @@ import no.nordicsemi.android.ble.response.ReadResponse
 import java.util.UUID
 
 class MyBleManager(batteryChangedCallback: DataReceivedCallback, context: Context) : BleManager(context) {
+    val services = mutableMapOf<UUID, List<UUID>>()
 
     var batteryCallback = batteryChangedCallback
 
@@ -38,9 +39,14 @@ class MyBleManager(batteryChangedCallback: DataReceivedCallback, context: Contex
         gatt.services.forEach { service ->
             Log.d(TAG, "... found service ${service.uuid}")
 
+            var chars = mutableListOf<UUID>()
+
             service.characteristics.forEach { char ->
+                chars.add(char.uuid)
                 Log.d(TAG, "... ... found characteristic ${char.uuid}")
             }
+
+            services[service.uuid] = chars
         }
 
         val batteryService = gatt.getService(UUID.fromString(BATTERY_SERVICE))

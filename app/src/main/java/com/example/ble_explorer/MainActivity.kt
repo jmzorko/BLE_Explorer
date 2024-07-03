@@ -43,6 +43,20 @@ class MainActivity : ComponentActivity() {
                                 }
                             }
                         }
+                        composable(
+                            route = Screen.CharacteristicsScreen.route + "/{service}",
+                            arguments = listOf(
+                                navArgument(name = "service") {
+                                    type = NavType.StringType
+                                }
+                            )
+                        ) { service ->
+                            service.arguments?.let {
+                                it.getString("service")?.let {
+                                    CharacteristicsScreen(navController = navController, service = it)
+                                }
+                            }
+                        }
                     }
                 }
             }

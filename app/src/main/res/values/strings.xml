@@ -1,4 +1,5 @@
 <resources>
     <string name="app_name">BLE Explorer</string>
     <string name="details">Device Details</string>
+    <string name="characteristics">Characteristics</string>
 </resources>
