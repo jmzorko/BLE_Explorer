@@ -109,7 +109,7 @@ fun DetailScreen(navController: NavController, deviceAddress: String, modifier: 
                             items(ble.services.toList()) { service ->
                                 Row {
                                     TextButton(onClick = {
-                                        navController.navigate(Screen.CharacteristicsScreen.route + "/${service.first.toString()}")
+                                        navController.navigate(Screen.CharacteristicsScreen.route + "/${deviceAddress}/${service.first}")
                                     }) {
                                         Text(service.first.toString(), fontSize = 23.sp)
                                     }

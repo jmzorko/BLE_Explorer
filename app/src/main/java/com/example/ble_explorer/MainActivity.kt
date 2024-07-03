@@ -13,6 +13,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.example.ble_explorer.ui.theme.BLE_ExplorerTheme
+import java.util.UUID
 
 class MainActivity : ComponentActivity() {
     public var viewModel: BLEViewModel? = null
@@ -44,16 +45,25 @@ class MainActivity : ComponentActivity() {
                             }
                         }
                         composable(
-                            route = Screen.CharacteristicsScreen.route + "/{service}",
+                            route = Screen.CharacteristicsScreen.route + "/{address}/{service}",
                             arguments = listOf(
+                                navArgument(name = "address") {
+                                    type = NavType.StringType
+                                },
                                 navArgument(name = "service") {
                                     type = NavType.StringType
                                 }
                             )
                         ) { service ->
-                            service.arguments?.let {
-                                it.getString("service")?.let {
-                                    CharacteristicsScreen(navController = navController, service = it)
+                            service.arguments?.let { svc ->
+                                svc.getString("address")?.let { addr ->
+                                    svc.getString("service")?.let { uuid ->
+                                        CharacteristicsScreen(
+                                            navController = navController,
+                                            deviceAddress = addr,
+                                            service = UUID.fromString(uuid)
+                                        )
+                                    }
                                 }
                             }
                         }
