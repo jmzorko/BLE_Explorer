@@ -202,7 +202,7 @@ class BLEViewModel(private val ctx: Context) : ViewModel() {
             }
 
             override fun onDeviceDisconnected(device: BluetoothDevice, reason: Int) {
-                Log.d(TAG, "JMZ connection observer reports ${bleManager.connectionState} for device ${device.address}")
+                Log.d(TAG, "JMZ connection observer reports ${bleManager.connectionState} for device ${device.address} reason ${reason}")
                 connectedStates[device.address] = bleManager.connectionState
 
                 if (connectedAddresses.contains(device.address)) {

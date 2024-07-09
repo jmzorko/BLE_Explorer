@@ -58,7 +58,14 @@ fun DetailScreen(navController: NavController, deviceAddress: String, modifier: 
                 Log.d("JMZ", "connection state: ${stateString}")
 
                 Row {
-                    IconButton(onClick = { navController.popBackStack() }) {
+                    IconButton(onClick = {
+                        if (!navController.popBackStack()) {
+                            mainActivity.finish()
+                            bleManager?.let {
+                                bleManager.disconnect().enqueue()
+                            }
+                        }
+                    }) {
                         Icon(
                             imageVector = Icons.Filled.ArrowBack,
                             contentDescription = ""
