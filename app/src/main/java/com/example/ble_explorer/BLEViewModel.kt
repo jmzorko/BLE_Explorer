@@ -3,6 +3,7 @@ package com.example.ble_explorer
 import android.annotation.SuppressLint
 import android.bluetooth.BluetoothAdapter
 import android.bluetooth.BluetoothDevice
+import android.bluetooth.BluetoothGatt
 import android.bluetooth.le.ScanCallback
 import android.bluetooth.le.ScanFilter
 import android.bluetooth.le.ScanResult
@@ -184,6 +185,7 @@ class BLEViewModel(private val ctx: Context) : ViewModel() {
                 if (isConnected.toString().equals("true")) {
                     var dev = DeviceScanResult(10, device)
                     devicesState.add(dev)
+                    createNewConnectionMgr(dev.device.address.toString(), initiallyConnected = true)
                     sort()
                 }
             } catch (e: Exception) {
@@ -192,7 +194,7 @@ class BLEViewModel(private val ctx: Context) : ViewModel() {
         }
     }
 
-    fun createNewConnectionMgr(deviceAddress: String) : MyBleManager {
+    fun createNewConnectionMgr(deviceAddress: String, initiallyConnected: Boolean = false) : MyBleManager {
         var bleManager = MyBleManager(batteryStateCallback, context = ctx)
 
         bleManager.connectionObserver = object : ConnectionObserver {
@@ -248,6 +250,11 @@ class BLEViewModel(private val ctx: Context) : ViewModel() {
         }
 
         bleManagerMap[deviceAddress] = bleManager
+
+        if (initiallyConnected) {
+            connectedStates[deviceAddress] = BluetoothGatt.STATE_CONNECTED
+            connectedAddresses.add(deviceAddress)
+        }
         return bleManager
     }
 

@@ -26,7 +26,7 @@ class MainActivity : ComponentActivity() {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
                     val navController = rememberNavController()
                     NavHost(navController = navController, startDestination = Screen.DevicesScreen.route) {
-                        viewModel = BLEViewModel(this@MainActivity)
+                        //viewModel = BLEViewModel(this@MainActivity)
 
                         composable(route = Screen.DevicesScreen.route) {
                             DevicesScreen(navController = navController)
