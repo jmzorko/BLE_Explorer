@@ -174,6 +174,24 @@ class BLEViewModel(private val ctx: Context) : ViewModel() {
         return scaled
     }
 
+    @SuppressLint("MissingPermission")
+    fun findAlreadyConnectedDevices() {
+        BluetoothAdapter.getDefaultAdapter().bondedDevices.forEach { device ->
+            try {
+                var isConnectedMethod = device.javaClass.getMethod("isConnected")
+                var isConnected = isConnectedMethod.invoke(device)
+                Log.d(TAG, "device ${device} connected ${isConnected.toString()}")
+                if (isConnected.toString().equals("true")) {
+                    var dev = DeviceScanResult(10, device)
+                    devicesState.add(dev)
+                    sort()
+                }
+            } catch (e: Exception) {
+                Log.d(TAG, "method not found")
+            }
+        }
+    }
+
     fun createNewConnectionMgr(deviceAddress: String) : MyBleManager {
         var bleManager = MyBleManager(batteryStateCallback, context = ctx)
 

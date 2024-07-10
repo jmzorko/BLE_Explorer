@@ -27,6 +27,7 @@ class MainActivity : ComponentActivity() {
                     val navController = rememberNavController()
                     NavHost(navController = navController, startDestination = Screen.DevicesScreen.route) {
                         viewModel = BLEViewModel(this@MainActivity)
+
                         composable(route = Screen.DevicesScreen.route) {
                             DevicesScreen(navController = navController)
                         }
@@ -69,6 +70,16 @@ class MainActivity : ComponentActivity() {
                         }
                     }
                 }
+            }
+        }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        if (viewModel == null) {
+            viewModel = BLEViewModel(this@MainActivity)
+            viewModel?.let {
+                it.findAlreadyConnectedDevices()
             }
         }
     }
