@@ -60,7 +60,7 @@ fun DetailScreen(navController: NavController, deviceAddress: String, modifier: 
                 Row {
                     IconButton(onClick = {
                         if (!navController.popBackStack()) {
-                            mainActivity.finish()
+                            mainActivity.finish()   // FIXME: this destroys the viewmodel with the BLE connection observers, losing track of current connections
                             bleManager?.let {
                                 bleManager.disconnect().enqueue()
                             }
