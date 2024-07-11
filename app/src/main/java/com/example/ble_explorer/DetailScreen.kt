@@ -55,7 +55,7 @@ fun DetailScreen(navController: NavController, deviceAddress: String, modifier: 
                 titleContentColor = MaterialTheme.colorScheme.primary,
             ),
             title = {
-                Log.d("JMZ", "connection state: ${stateString}")
+                Log.d("DetailScreen", "connection state: ${stateString}")
 
                 Row {
                     IconButton(onClick = {
@@ -102,7 +102,8 @@ fun DetailScreen(navController: NavController, deviceAddress: String, modifier: 
                     Button(modifier = Modifier.size(width = 160.dp, height = 40.dp),
                         onClick = {
                             bleManager?.let {
-                                bleManager.disconnect().enqueue() // FIXME: doesn't disconnect after recreating view model
+                                // FIXME: doesn't disconnect after recreating view model bc connection was not closed before earlier view model was destroyed
+                                bleManager.disconnect().enqueue()
                             }
                         }
                     ) {

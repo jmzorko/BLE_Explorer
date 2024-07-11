@@ -47,7 +47,7 @@ class BLEViewModel(private val ctx: Context) : ViewModel() {
             val currentTimeScaled = System.currentTimeMillis() / TIME_SCALE
             if (currentTimeScaled > lastScanTimeScaled || currentTimeScaled < scanStartedTimeSeconds + FAST_SCAN_THRESHOLD_SECONDS) {
                 lastScanTimeScaled = currentTimeScaled
-                Log.d(TAG, "updating list")
+                //Log.d(TAG, "updating list")
                 result?.let { update(result) }
             }
         }
@@ -61,7 +61,7 @@ class BLEViewModel(private val ctx: Context) : ViewModel() {
     @SuppressLint("MissingPermission")
     fun startDeviceScan() {
         if (!isScanning) {
-            Log.d("JMZ", "starting BLE scan")
+            Log.d(TAG, "starting BLE scan")
             /*scanHandler.postDelayed({
                 if (scanCount > 0) {
                     scanner.stopScan(scanCallback)
@@ -163,7 +163,7 @@ class BLEViewModel(private val ctx: Context) : ViewModel() {
         }
 
         if (shouldSort) {
-            Log.d(TAG, "JMZ sorting")
+            //Log.d(TAG, "JMZ sorting")
             sort()
         }
 
@@ -187,10 +187,9 @@ class BLEViewModel(private val ctx: Context) : ViewModel() {
             try {
                 var isConnectedMethod = device.javaClass.getMethod("isConnected")
                 var isConnected = isConnectedMethod.invoke(device)
-                Log.d(TAG, "device ${device} connected ${isConnected.toString()}")
                 if (isConnected.toString().equals("true")) {
+                    Log.d(TAG, "device ${device} already connected")
                     var dev = DeviceScanResult(10, device)
-                    devicesState.add(dev)
                     connect(device) // ... we do this to setup the connection observer
                     sort()
                 }
@@ -205,7 +204,7 @@ class BLEViewModel(private val ctx: Context) : ViewModel() {
 
         bleManager.connectionObserver = object : ConnectionObserver {
             override fun onDeviceConnected(device: BluetoothDevice) {
-                Log.d(TAG, "JMZ connection observer reports ${bleManager.connectionState} for device ${device.address}")
+                Log.d(TAG, "JMZ onDeviceConnected on mgr ${bleManager} reports ${bleManager.connectionState} for device ${device.address}")
                 connectedStates[device.address] = bleManager.connectionState
 
                 if (!connectedAddresses.contains(device.address)) {
@@ -228,7 +227,7 @@ class BLEViewModel(private val ctx: Context) : ViewModel() {
             }
 
             override fun onDeviceDisconnected(device: BluetoothDevice, reason: Int) {
-                Log.d(TAG, "JMZ connection observer reports ${bleManager.connectionState} for device ${device.address} reason ${reason}")
+                Log.d(TAG, "JMZ onDeviceDisconnected on mgr ${bleManager} reports ${bleManager.connectionState} for device ${device.address} reason ${reason}")
                 connectedStates[device.address] = bleManager.connectionState
 
                 if (connectedAddresses.contains(device.address)) {
@@ -237,21 +236,21 @@ class BLEViewModel(private val ctx: Context) : ViewModel() {
             }
 
             override fun onDeviceFailedToConnect(device: BluetoothDevice, reason: Int) {
-                Log.d(TAG, "JMZ connection observer reports ${bleManager.connectionState} for device ${device.address}")
+                Log.d(TAG, "JMZ onDeviceFailedToConnect on mgr ${bleManager} reports ${bleManager.connectionState} for device ${device.address}")
                 connectedStates[device.address] = bleManager.connectionState
             }
 
             override fun onDeviceConnecting(device: BluetoothDevice) {
-                Log.d(TAG, "JMZ connection observer reports ${bleManager.connectionState} for device ${device.address}")
+                Log.d(TAG, "JMZ onDeviceConnecting on mgr ${bleManager} reports ${bleManager.connectionState} for device ${device.address}")
                 connectedStates[device.address] = bleManager.connectionState
             }
 
             override fun onDeviceDisconnecting(device: BluetoothDevice) {
-                Log.d(TAG, "JMZ connection observer reports ${bleManager.connectionState} for device ${device.address}")
+                Log.d(TAG, "JMZ onDeviceDisconnecting on mgr ${bleManager} reports ${bleManager.connectionState} for device ${device.address}")
             }
 
             override fun onDeviceReady(device: BluetoothDevice) {
-                Log.d(TAG, "JMZ connection observer reports ${bleManager.connectionState} for device ${device.address}")
+                Log.d(TAG, "JMZ onDeviceReady on mgr ${bleManager} reports ${bleManager.connectionState} for device ${device.address}")
             }
         }
 
@@ -263,6 +262,7 @@ class BLEViewModel(private val ctx: Context) : ViewModel() {
     fun connect(device: BluetoothDevice) {
         viewModelScope.launch(Dispatchers.IO) {
             var bleManager = this@BLEViewModel.bleManagerMap[device.address] ?: createNewConnectionMgr(device.address)
+            Log.d(TAG, "device ${device.address} mgr ${bleManager}")
 
             try {
                 Log.d(TAG, "JMZ connecting to ${device.address}")
@@ -289,7 +289,7 @@ class BLEViewModel(private val ctx: Context) : ViewModel() {
         private const val PREFS = "BLE_Explorer"
         private const val FAST_SCAN_THRESHOLD_SECONDS = 5
         private const val TIME_SCALE = 100
-        private const val RSSI_SCALE = 1
+        private const val RSSI_SCALE = 5
     }
 }
 

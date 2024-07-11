@@ -38,10 +38,10 @@ fun DevicesScreen(navController: NavController, modifier: Modifier = Modifier) {
         it.forEach { s, b ->
             if (b) {
                 good = true
-                Log.d("JMZ", "$s granted")
+                Log.d("DevicesScreen", "$s granted")
             } else {
                 good = false
-                Log.d("JMZ", "$s denied")
+                Log.d("DevicesScreen", "$s denied")
                 return@forEach
             }
         }
@@ -55,11 +55,11 @@ fun DevicesScreen(navController: NavController, modifier: Modifier = Modifier) {
 
     when (PackageManager.PERMISSION_GRANTED) {
         ActivityCompat.checkSelfPermission(ctx, Manifest.permission.BLUETOOTH_SCAN) -> {
-            Log.d("JMZ", "needs BLUETOOTH_SCAN")
+            Log.d("DevicesScreen", "needs BLUETOOTH_SCAN")
             mainActivity.viewModel?.startDeviceScan()
         }
         ActivityCompat.checkSelfPermission(ctx, Manifest.permission.BLUETOOTH_CONNECT) -> {
-            Log.d("JMZ", "needs BLUETOOTH_CONNECT")
+            Log.d("DevicesScreen", "needs BLUETOOTH_CONNECT")
         }
         else -> {
             LaunchedEffect(Unit) {
