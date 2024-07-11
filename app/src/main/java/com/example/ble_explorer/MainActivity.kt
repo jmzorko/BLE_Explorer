@@ -78,9 +78,6 @@ class MainActivity : ComponentActivity() {
         super.onResume()
         if (viewModel == null) {
             viewModel = BLEViewModel(this@MainActivity)
-            viewModel?.let {
-                it.findAlreadyConnectedDevices()
-            }
         }
     }
 }

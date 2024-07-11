@@ -36,6 +36,7 @@ class BLEViewModel(private val ctx: Context) : ViewModel() {
 
     var scanHandler = Handler(Looper.getMainLooper())
     var isScanning = false
+    var foundAlreadyConnectedDevices = false
     var scanStartedCount = 0
     var lastScanTimeScaled: Long = 0
     var scanStartedTimeSeconds = System.currentTimeMillis() / 1000
@@ -76,6 +77,11 @@ class BLEViewModel(private val ctx: Context) : ViewModel() {
             val settings = ScanSettings.Builder().setScanMode(ScanSettings.SCAN_MODE_LOW_POWER).build()
             scanner.startScan(filters, settings, scanCallback)
             scanStartedCount ++
+        }
+
+        if (!foundAlreadyConnectedDevices) {
+            findAlreadyConnectedDevices()
+            foundAlreadyConnectedDevices = true
         }
     }
 
@@ -185,7 +191,7 @@ class BLEViewModel(private val ctx: Context) : ViewModel() {
                 if (isConnected.toString().equals("true")) {
                     var dev = DeviceScanResult(10, device)
                     devicesState.add(dev)
-                    createNewConnectionMgr(dev.device.address.toString(), initiallyConnected = true)
+                    connect(device) // ... we do this to setup the connection observer
                     sort()
                 }
             } catch (e: Exception) {
@@ -194,7 +200,7 @@ class BLEViewModel(private val ctx: Context) : ViewModel() {
         }
     }
 
-    fun createNewConnectionMgr(deviceAddress: String, initiallyConnected: Boolean = false) : MyBleManager {
+    fun createNewConnectionMgr(deviceAddress: String) : MyBleManager {
         var bleManager = MyBleManager(batteryStateCallback, context = ctx)
 
         bleManager.connectionObserver = object : ConnectionObserver {
@@ -251,10 +257,6 @@ class BLEViewModel(private val ctx: Context) : ViewModel() {
 
         bleManagerMap[deviceAddress] = bleManager
 
-        if (initiallyConnected) {
-            connectedStates[deviceAddress] = BluetoothGatt.STATE_CONNECTED
-            connectedAddresses.add(deviceAddress)
-        }
         return bleManager
     }
 
