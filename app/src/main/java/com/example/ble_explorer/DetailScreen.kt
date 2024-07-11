@@ -61,9 +61,9 @@ fun DetailScreen(navController: NavController, deviceAddress: String, modifier: 
                     IconButton(onClick = {
                         if (!navController.popBackStack()) {
                             mainActivity.finish()
-                            /*bleManager?.let {
-                                bleManager.disconnect().enqueue()
-                            }*/
+                            bleManager?.let {
+                                //bleManager.disconnect().enqueue()
+                            }
                         }
                     }) {
                         Icon(

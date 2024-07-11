@@ -26,8 +26,6 @@ class MainActivity : ComponentActivity() {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
                     val navController = rememberNavController()
                     NavHost(navController = navController, startDestination = Screen.DevicesScreen.route) {
-                        //viewModel = BLEViewModel(this@MainActivity)
-
                         composable(route = Screen.DevicesScreen.route) {
                             DevicesScreen(navController = navController)
                         }
@@ -74,6 +72,13 @@ class MainActivity : ComponentActivity() {
         }
     }
 
+    override fun onDestroy() {
+        viewModel?.let { vm ->
+            //vm.cleanup()
+        }
+
+        super.onDestroy()
+    }
     override fun onResume() {
         super.onResume()
         if (viewModel == null) {

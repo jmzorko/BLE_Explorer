@@ -181,6 +181,10 @@ class BLEViewModel(private val ctx: Context) : ViewModel() {
         return scaled
     }
 
+    fun cleanup() {
+        bleManagerMap.forEach { it.value.close() }
+    }
+
     @SuppressLint("MissingPermission")
     fun findAlreadyConnectedDevices() {
         BluetoothAdapter.getDefaultAdapter().bondedDevices.forEach { device ->
