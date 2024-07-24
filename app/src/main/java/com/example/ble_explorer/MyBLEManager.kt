@@ -49,10 +49,15 @@ class MyBleManager(batteryChangedCallback: DataReceivedCallback, context: Contex
             services[service.uuid] = chars
         }
 
+        return true
+    }
+
+    override fun isOptionalServiceSupported(gatt: BluetoothGatt): Boolean {
         val batteryService = gatt.getService(UUID.fromString(BATTERY_SERVICE))
         if (batteryService != null) {
             batteryChar = batteryService.getCharacteristic(UUID.fromString(BATTERY_CHARACTERISTIC))
         }
+
         return batteryChar != null
     }
 
