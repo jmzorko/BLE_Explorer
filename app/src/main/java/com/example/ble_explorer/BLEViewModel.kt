@@ -194,7 +194,7 @@ class BLEViewModel(private val ctx: Context) : ViewModel() {
                 if (isConnected.toString().equals("true")) {
                     Log.d(TAG, "device ${device} already connected")
                     var dev = DeviceScanResult(10, device)
-                    connect(device) // ... we do this to setup the connection observer
+                    connect(device) // ... the device is already connected - we do this to setup the connection observer
                     sort()
                 }
             } catch (e: Exception) {
