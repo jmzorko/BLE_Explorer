@@ -4,6 +4,8 @@ import android.annotation.SuppressLint
 import android.bluetooth.BluetoothAdapter
 import android.bluetooth.BluetoothDevice
 import android.bluetooth.BluetoothGatt
+import android.bluetooth.BluetoothManager
+import android.bluetooth.BluetoothProfile
 import android.bluetooth.le.ScanCallback
 import android.bluetooth.le.ScanFilter
 import android.bluetooth.le.ScanResult
@@ -14,6 +16,7 @@ import android.os.Looper
 import android.util.Log
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateMapOf
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.Dispatchers
@@ -186,20 +189,25 @@ class BLEViewModel(private val ctx: Context) : ViewModel() {
     }
 
     @SuppressLint("MissingPermission")
-    fun findAlreadyConnectedDevices() {
+    fun findAlreadyConnectedBondedDevices() {
         BluetoothAdapter.getDefaultAdapter().bondedDevices.forEach { device ->
             try {
                 var isConnectedMethod = device.javaClass.getMethod("isConnected")
                 var isConnected = isConnectedMethod.invoke(device)
                 if (isConnected.toString().equals("true")) {
-                    Log.d(TAG, "device ${device} already connected")
-                    var dev = DeviceScanResult(10, device)
-                    connect(device) // ... the device is already connected - we do this to setup the connection observer
-                    sort()
+                    connectAndSort(device)
                 }
             } catch (e: Exception) {
                 Log.d(TAG, "method not found")
             }
+        }
+    }
+
+    @SuppressLint("MissingPermission")
+    fun findAlreadyConnectedDevices() {
+        var bluetoothManager = ContextCompat.getSystemService(ctx, BluetoothManager::class.java)
+        bluetoothManager?.getConnectedDevices(BluetoothProfile.GATT)?.forEach { device ->
+            connectAndSort(device)
         }
     }
 
@@ -261,6 +269,13 @@ class BLEViewModel(private val ctx: Context) : ViewModel() {
         bleManagerMap[deviceAddress] = bleManager
 
         return bleManager
+    }
+
+    fun connectAndSort(device: BluetoothDevice) {
+        Log.d(TAG, "device ${device} already connected")
+        var dev = DeviceScanResult(10, device)
+        connect(device) // ... the device is already connected - we do this to setup the connection observer
+        sort()
     }
 
     fun connect(device: BluetoothDevice) {
