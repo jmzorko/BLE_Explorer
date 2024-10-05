@@ -1,14 +1,18 @@
 package com.example.ble_explorer
 
+import android.annotation.SuppressLint
+import android.bluetooth.BluetoothDevice
 import android.bluetooth.BluetoothGatt
 import android.bluetooth.BluetoothGattCharacteristic
 import android.bluetooth.BluetoothGattServer
 import android.content.Context
 import android.util.Log
 import no.nordicsemi.android.ble.BleManager
+import no.nordicsemi.android.ble.Request
 import no.nordicsemi.android.ble.callback.DataReceivedCallback
 import no.nordicsemi.android.ble.data.Data
 import no.nordicsemi.android.ble.ktx.suspendForResponse
+import no.nordicsemi.android.ble.observer.BondingObserver
 import no.nordicsemi.android.ble.response.ReadResponse
 import java.util.UUID
 
@@ -16,6 +20,22 @@ class MyBleManager(batteryChangedCallback: DataReceivedCallback, context: Contex
     val services = mutableMapOf<UUID, List<UUID>>()
 
     var batteryCallback = batteryChangedCallback
+
+    init {
+        bondingObserver = object : BondingObserver {
+            override fun onBondingRequired(device: BluetoothDevice) {
+                Log.d(TAG, "needs bonding")
+            }
+
+            override fun onBonded(device: BluetoothDevice) {
+                Log.d(TAG, "has bonded")
+            }
+
+            override fun onBondingFailed(device: BluetoothDevice) {
+                Log.d(TAG, "bonding failed")
+            }
+        }
+    }
 
     // ==== Logging =====
     override fun getMinLogPriority(): Int {
@@ -31,10 +51,19 @@ class MyBleManager(batteryChangedCallback: DataReceivedCallback, context: Contex
     // ==== Required implementation ====
     // This is a reference to a characteristic that the manager will use internally.
     var batteryChar: BluetoothGattCharacteristic? = null
+    var disNameChar: BluetoothGattCharacteristic? = null
 
     override fun isRequiredServiceSupported(gatt: BluetoothGatt): Boolean {
         // Here obtain instances of your characteristics.
         // Return false if a required service has not been discovered.
+
+        var ret = false
+
+        val dis = gatt.getService(UUID.fromString(DEVICE_INFO_SERVICE))
+        if (dis != null) {
+            disNameChar = dis.getCharacteristic(UUID.fromString(DEVICE_INFO_CHAR_NAME))
+            ret = true
+        }
 
         gatt.services.forEach { service ->
             Log.d(TAG, "... found service ${service.uuid}")
@@ -49,7 +78,7 @@ class MyBleManager(batteryChangedCallback: DataReceivedCallback, context: Contex
             services[service.uuid] = chars
         }
 
-        return true
+        return ret
     }
 
     override fun isOptionalServiceSupported(gatt: BluetoothGatt): Boolean {
@@ -67,6 +96,8 @@ class MyBleManager(batteryChangedCallback: DataReceivedCallback, context: Contex
         // something to a Control Point characteristic.
         // Kotlin projects should not use suspend methods here, as this method does not suspend.
         requestMtu(517).enqueue()
+
+        readCharacteristic(disNameChar).enqueue()
 
         enableNotifications(batteryChar).enqueue()
         setNotificationCallback(batteryChar).with(batteryCallback)
@@ -108,8 +139,22 @@ class MyBleManager(batteryChangedCallback: DataReceivedCallback, context: Contex
         }
     }
 
+    suspend fun getDISName() : String? {
+        try {
+            val response: ReadResponse = readCharacteristic(disNameChar)
+                .suspendForResponse()   // FIXME needed JVM 17 to run ... might need to update to newer lib
+            return response.rawData?.getStringValue(0)
+        } catch (e: Exception) {
+            return "Error getting DIS"
+        }
+    }
+
     companion object {
         private const val TAG = "MyBleManager"
+        private const val DEVICE_INFO_SERVICE = "0000180A-0000-1000-8000-00805F9B34FB"
+        private const val DEVICE_INFO_CHAR_NAME = "00002A24-0000-1000-8000-00805F9B34FB"
+
+        private const val M3_DEVICE_STATE = "E5030006-4E19-428E-A331-F90D5ABBA18C"
         private const val BATTERY_SERVICE = "0000180F-0000-1000-8000-00805f9b34fb"
         private const val BATTERY_CHARACTERISTIC = "00002a19-0000-1000-8000-00805f9b34fb"
     }

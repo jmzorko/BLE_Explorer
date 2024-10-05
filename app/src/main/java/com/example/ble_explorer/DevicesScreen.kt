@@ -102,7 +102,16 @@ fun DevicesScreen(navController: NavController, modifier: Modifier = Modifier) {
             LazyColumn(modifier = modifier.padding(top = 128.dp)) {
                 items(devices) { dev ->
                     var connected = vm.connectedAddresses.contains(dev.device.address)
-                    Device(navController, dev.device.name ?: "(no name)", dev.device.address, dev.rssi, connected, dev.device.bondState)
+                    dev.device.name?.let {
+                        Device(
+                            navController,
+                            dev.device.name ?: "(no name)",
+                            dev.device.address,
+                            dev.rssi,
+                            connected,
+                            dev.device.bondState
+                        )
+                    }
                 }
             }
         }

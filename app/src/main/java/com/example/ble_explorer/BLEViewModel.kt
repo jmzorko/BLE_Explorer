@@ -13,6 +13,7 @@ import android.bluetooth.le.ScanSettings
 import android.content.Context
 import android.os.Handler
 import android.os.Looper
+import android.os.ParcelUuid
 import android.util.Log
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateMapOf
@@ -25,6 +26,7 @@ import no.nordicsemi.android.ble.callback.DataReceivedCallback
 import no.nordicsemi.android.ble.data.Data
 import no.nordicsemi.android.ble.ktx.suspend
 import no.nordicsemi.android.ble.observer.ConnectionObserver
+import java.util.UUID
 import kotlin.math.abs
 
 
@@ -47,12 +49,13 @@ class BLEViewModel(private val ctx: Context) : ViewModel() {
     val scanCallback: ScanCallback = object : ScanCallback() {
         override fun onScanResult(callbackType: Int, result: ScanResult?) {
             super.onScanResult(callbackType, result)
-            val currentTimeScaled = System.currentTimeMillis() / TIME_SCALE
-            if (currentTimeScaled > lastScanTimeScaled || currentTimeScaled < scanStartedTimeSeconds + FAST_SCAN_THRESHOLD_SECONDS) {
-                lastScanTimeScaled = currentTimeScaled
-                //Log.d(TAG, "updating list")
-                result?.let { update(result) }
+            //val currentTimeScaled = System.currentTimeMillis() / TIME_SCALE
+            //if (currentTimeScaled > lastScanTimeScaled || currentTimeScaled < scanStartedTimeSeconds + FAST_SCAN_THRESHOLD_SECONDS) {
+            //    lastScanTimeScaled = currentTimeScaled
+            result?.let { r ->
+                update(result)
             }
+            //}
         }
 
         override fun onScanFailed(errorCode: Int) {
@@ -74,10 +77,14 @@ class BLEViewModel(private val ctx: Context) : ViewModel() {
 
             isScanning = true
             val filters: MutableList<ScanFilter> = ArrayList()
-            val scanFilterName = ScanFilter.Builder().setDeviceName(null).build()
-            filters.add(scanFilterName)
+            // M3   "E5030001-4E19-428E-A331-F90D5ABBA18C"
+            // M2   "01E53401-E7D4-FBBD-7D41-12A404783F7F"
+            val scanFilterNameM2  = ScanFilter.Builder().setServiceUuid(ParcelUuid(UUID.fromString("E5030001-4E19-428E-A331-F90D5ABBA18C"))).build()
+            val scanFilterNameM3 = ScanFilter.Builder().setServiceUuid(ParcelUuid(UUID.fromString("01E53401-E7D4-FBBD-7D41-12A404783F7F"))).build()
+            filters.add(scanFilterNameM2)
+            filters.add(scanFilterNameM3)
 
-            val settings = ScanSettings.Builder().setScanMode(ScanSettings.SCAN_MODE_LOW_POWER).build()
+            val settings = ScanSettings.Builder().setScanMode(ScanSettings.SCAN_MODE_LOW_LATENCY).build()
             scanner.startScan(filters, settings, scanCallback)
             scanStartedCount ++
         }
@@ -147,6 +154,8 @@ class BLEViewModel(private val ctx: Context) : ViewModel() {
         }
 
         var shouldSort = false
+
+        //Log.d(TAG, "updating list with ${result.device?.name ?: "?"} address ${result.device?.address} already found ${found != null}")
 
         if (found == null) {
             devicesState.add(dev)
@@ -239,7 +248,7 @@ class BLEViewModel(private val ctx: Context) : ViewModel() {
             }
 
             override fun onDeviceDisconnected(device: BluetoothDevice, reason: Int) {
-                Log.d(TAG, "JMZ onDeviceDisconnected on mgr ${bleManager} reports ${bleManager.connectionState} for device ${device.address} reason ${reason}")
+                Log.d(TAG, "JMZ  .................. onDeviceDisconnected on mgr ${bleManager} reports ${bleManager.connectionState} for device ${device.address} reason ${reason}")
                 connectedStates[device.address] = bleManager.connectionState
 
                 if (connectedAddresses.contains(device.address)) {
@@ -292,7 +301,10 @@ class BLEViewModel(private val ctx: Context) : ViewModel() {
                     .suspend()
 
                 batteryLevels[device.address] = bleManager.getBatteryLevel()!!
+                val disResult = bleManager.getDISName()
+                Log.d(TAG, "JMZ name is ${disResult}")
             } catch (e: Exception) {
+                bleManager.disconnect()
                 Log.d(TAG, "JMZ exception ${e} while trying to connect to ${device.address}")
                 e.printStackTrace()
             }
