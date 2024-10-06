@@ -7,6 +7,7 @@ import android.bluetooth.BluetoothGattCharacteristic
 import android.bluetooth.BluetoothGattServer
 import android.content.Context
 import android.util.Log
+import com.example.ble_explorer.BLEViewModel.Companion
 import no.nordicsemi.android.ble.BleManager
 import no.nordicsemi.android.ble.Request
 import no.nordicsemi.android.ble.callback.DataReceivedCallback
@@ -53,6 +54,7 @@ class MyBleManager(batteryChangedCallback: DataReceivedCallback, context: Contex
     var batteryChar: BluetoothGattCharacteristic? = null
     var disNameChar: BluetoothGattCharacteristic? = null
     var disSerialChar: BluetoothGattCharacteristic? = null
+    var deviceStateChar: BluetoothGattCharacteristic? = null
 
     override fun isRequiredServiceSupported(gatt: BluetoothGatt): Boolean {
         // Here obtain instances of your characteristics.
@@ -64,6 +66,12 @@ class MyBleManager(batteryChangedCallback: DataReceivedCallback, context: Contex
         if (dis != null) {
             disNameChar = dis.getCharacteristic(UUID.fromString(DEVICE_INFO_CHAR_NAME))
             disSerialChar = dis.getCharacteristic(UUID.fromString(DEVICE_INFO_CHAR_SERIAL_NUMBER))
+            ret = true
+        }
+
+        val primary = gatt.getService(UUID.fromString(M3_PRIMARY_SERVICE))
+        if (primary != null) {
+            deviceStateChar = primary.getCharacteristic(UUID.fromString(M3_DEVICE_STATE))
             ret = true
         }
 
@@ -143,21 +151,38 @@ class MyBleManager(batteryChangedCallback: DataReceivedCallback, context: Contex
 
     suspend fun getDISName() : String? {
         try {
+            Log.d(TAG, "JMZ reading device name ...")
             val response: ReadResponse = readCharacteristic(disNameChar)
                 .suspendForResponse()   // FIXME needed JVM 17 to run ... might need to update to newer lib
             return response.rawData?.getStringValue(0)
         } catch (e: Exception) {
-            return "Error getting DIS name"
+            return "Error getting DIS name " + e.message
         }
     }
 
     suspend fun getDISSerial() : String? {
         try {
+            Log.d(TAG, "JMZ reading device serial # ...")
             val response: ReadResponse = readCharacteristic(disSerialChar)
                 .suspendForResponse()   // FIXME needed JVM 17 to run ... might need to update to newer lib
             return response.rawData?.getStringValue(0)
         } catch (e: Exception) {
-            return "Error getting DIS serial number"
+            return "Error getting DIS serial number " + e.message
+        }
+    }
+
+    suspend fun getDeviceState() : String? {
+        if (deviceStateChar != null) {
+            try {
+                Log.d(TAG, "JMZ reading device state ...")
+                val response: ReadResponse = readCharacteristic(deviceStateChar)
+                    .suspendForResponse()   // FIXME needed JVM 17 to run ... might need to update to newer lib
+                return response.rawData?.getStringValue(0)
+            } catch (e: Exception) {
+                return "Error getting M3 device state " + e.message
+            }
+        } else {
+            return "No device state char found - not M3?"
         }
     }
 
@@ -167,6 +192,7 @@ class MyBleManager(batteryChangedCallback: DataReceivedCallback, context: Contex
         private const val DEVICE_INFO_CHAR_NAME = "00002A24-0000-1000-8000-00805F9B34FB"
         private const val DEVICE_INFO_CHAR_SERIAL_NUMBER = "00002A25-0000-1000-8000-00805F9B34FB"
 
+        private const val M3_PRIMARY_SERVICE = "E5030001-4E19-428E-A331-F90D5ABBA18C"
         private const val M3_DEVICE_STATE = "E5030006-4E19-428E-A331-F90D5ABBA18C"
         private const val BATTERY_SERVICE = "0000180F-0000-1000-8000-00805f9b34fb"
         private const val BATTERY_CHARACTERISTIC = "00002a19-0000-1000-8000-00805f9b34fb"

@@ -6,6 +6,7 @@ import android.bluetooth.BluetoothDevice
 import android.bluetooth.BluetoothGatt
 import android.bluetooth.BluetoothManager
 import android.bluetooth.BluetoothProfile
+import android.bluetooth.BluetoothStatusCodes
 import android.bluetooth.le.ScanCallback
 import android.bluetooth.le.ScanFilter
 import android.bluetooth.le.ScanResult
@@ -267,7 +268,14 @@ class BLEViewModel(private val ctx: Context) : ViewModel() {
             }
 
             override fun onDeviceDisconnecting(device: BluetoothDevice) {
-                Log.d(TAG, "JMZ onDeviceDisconnecting on mgr ${bleManager} reports ${bleManager.connectionState} for device ${device.address}")
+                if (bleManager.connectionState == BluetoothStatusCodes.ERROR_DEVICE_NOT_BONDED) {
+                    Log.d(TAG, "JMZ onDeviceDisconnecting on mgr ${bleManager} because device ${device.address} not bonded")
+                } else {
+                    Log.d(
+                        TAG,
+                        "JMZ onDeviceDisconnecting on mgr ${bleManager} reports ${bleManager.connectionState} for device ${device.address}"
+                    )
+                }
             }
 
             override fun onDeviceReady(device: BluetoothDevice) {
@@ -302,9 +310,11 @@ class BLEViewModel(private val ctx: Context) : ViewModel() {
 
                 batteryLevels[device.address] = bleManager.getBatteryLevel()!!
                 val disName = bleManager.getDISName()
-                Log.d(TAG, "JMZ name is ${disName}")
+                Log.d(TAG, "JMZ name: ${disName}")
                 val disSerial = bleManager.getDISSerial()
-                Log.d(TAG, "JMZ serial # is ${disSerial}")
+                Log.d(TAG, "JMZ serial #: ${disSerial}")
+                var deviceState = bleManager.getDeviceState()
+                Log.d(TAG, "JMZ device state: ${deviceState}")
             } catch (e: Exception) {
                 bleManager.disconnect()
                 Log.d(TAG, "JMZ exception ${e} while trying to connect to ${device.address}")
