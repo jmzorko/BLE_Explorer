@@ -3,6 +3,7 @@ package com.example.ble_explorer
 import android.annotation.SuppressLint
 import android.bluetooth.BluetoothAdapter
 import android.bluetooth.BluetoothDevice
+import android.bluetooth.BluetoothDevice.BOND_BONDED
 import android.bluetooth.BluetoothGatt
 import android.bluetooth.BluetoothManager
 import android.bluetooth.BluetoothProfile
@@ -23,6 +24,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import no.nordicsemi.android.ble.annotation.BondState
 import no.nordicsemi.android.ble.callback.DataReceivedCallback
 import no.nordicsemi.android.ble.data.Data
 import no.nordicsemi.android.ble.ktx.suspend
@@ -299,17 +301,23 @@ class BLEViewModel(private val ctx: Context) : ViewModel() {
     fun connectAndSort(device: BluetoothDevice) {
         Log.d(TAG, "device ${device} already connected")
         var dev = DeviceScanResult(10, device)
+
         connect(device) // ... the device is already connected - we do this to setup the connection observer
         sort()
     }
 
+    @SuppressLint("MissingPermission")
     fun connect(device: BluetoothDevice) {
         viewModelScope.launch(Dispatchers.IO) {
             var bleManager = this@BLEViewModel.bleManagerMap[device.address] ?: createNewConnectionMgr(device.address)
             Log.d(TAG, "device ${device.address} mgr ${bleManager}")
 
             try {
-                Log.d(TAG, "JMZ connecting to ${device.address}")
+
+                if (device.bondState != BOND_BONDED) {
+                    device.createBond()
+                }
+
                 bleManager.connect(device)
                     .retry(3, 100)
                     .timeout(15_000)
