@@ -249,7 +249,15 @@ class BLEViewModel(private val ctx: Context) : ViewModel() {
             }
 
             override fun onDeviceDisconnected(device: BluetoothDevice, reason: Int) {
-                Log.d(TAG, "JMZ  .................. onDeviceDisconnected on mgr ${bleManager} reports ${bleManager.connectionState} for device ${device.address} reason ${reason}")
+                if (reason == BluetoothStatusCodes.ERROR_DEVICE_NOT_BONDED) {
+                    Log.d(TAG, "JMZ onDeviceDisconnected on mgr ${bleManager} because device ${device.address} not bonded")
+                } else {
+                    Log.d(
+                        TAG,
+                        "JMZ  .................. onDeviceDisconnected on mgr ${bleManager} reports ${bleManager.connectionState} for device ${device.address} reason ${reason}"
+                    )
+                }
+
                 connectedStates[device.address] = bleManager.connectionState
 
                 if (connectedAddresses.contains(device.address)) {
