@@ -301,8 +301,10 @@ class BLEViewModel(private val ctx: Context) : ViewModel() {
                     .suspend()
 
                 batteryLevels[device.address] = bleManager.getBatteryLevel()!!
-                val disResult = bleManager.getDISName()
-                Log.d(TAG, "JMZ name is ${disResult}")
+                val disName = bleManager.getDISName()
+                Log.d(TAG, "JMZ name is ${disName}")
+                val disSerial = bleManager.getDISSerial()
+                Log.d(TAG, "JMZ serial # is ${disSerial}")
             } catch (e: Exception) {
                 bleManager.disconnect()
                 Log.d(TAG, "JMZ exception ${e} while trying to connect to ${device.address}")

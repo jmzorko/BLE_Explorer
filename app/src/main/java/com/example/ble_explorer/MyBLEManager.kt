@@ -52,6 +52,7 @@ class MyBleManager(batteryChangedCallback: DataReceivedCallback, context: Contex
     // This is a reference to a characteristic that the manager will use internally.
     var batteryChar: BluetoothGattCharacteristic? = null
     var disNameChar: BluetoothGattCharacteristic? = null
+    var disSerialChar: BluetoothGattCharacteristic? = null
 
     override fun isRequiredServiceSupported(gatt: BluetoothGatt): Boolean {
         // Here obtain instances of your characteristics.
@@ -62,6 +63,7 @@ class MyBleManager(batteryChangedCallback: DataReceivedCallback, context: Contex
         val dis = gatt.getService(UUID.fromString(DEVICE_INFO_SERVICE))
         if (dis != null) {
             disNameChar = dis.getCharacteristic(UUID.fromString(DEVICE_INFO_CHAR_NAME))
+            disSerialChar = dis.getCharacteristic(UUID.fromString(DEVICE_INFO_CHAR_SERIAL_NUMBER))
             ret = true
         }
 
@@ -145,7 +147,17 @@ class MyBleManager(batteryChangedCallback: DataReceivedCallback, context: Contex
                 .suspendForResponse()   // FIXME needed JVM 17 to run ... might need to update to newer lib
             return response.rawData?.getStringValue(0)
         } catch (e: Exception) {
-            return "Error getting DIS"
+            return "Error getting DIS name"
+        }
+    }
+
+    suspend fun getDISSerial() : String? {
+        try {
+            val response: ReadResponse = readCharacteristic(disSerialChar)
+                .suspendForResponse()   // FIXME needed JVM 17 to run ... might need to update to newer lib
+            return response.rawData?.getStringValue(0)
+        } catch (e: Exception) {
+            return "Error getting DIS serial number"
         }
     }
 
@@ -153,6 +165,7 @@ class MyBleManager(batteryChangedCallback: DataReceivedCallback, context: Contex
         private const val TAG = "MyBleManager"
         private const val DEVICE_INFO_SERVICE = "0000180A-0000-1000-8000-00805F9B34FB"
         private const val DEVICE_INFO_CHAR_NAME = "00002A24-0000-1000-8000-00805F9B34FB"
+        private const val DEVICE_INFO_CHAR_SERIAL_NUMBER = "00002A25-0000-1000-8000-00805F9B34FB"
 
         private const val M3_DEVICE_STATE = "E5030006-4E19-428E-A331-F90D5ABBA18C"
         private const val BATTERY_SERVICE = "0000180F-0000-1000-8000-00805f9b34fb"
