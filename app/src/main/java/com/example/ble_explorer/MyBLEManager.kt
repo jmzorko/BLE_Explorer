@@ -34,6 +34,7 @@ class MyBleManager(batteryChangedCallback: DataReceivedCallback, context: Contex
 
             override fun onBondingFailed(device: BluetoothDevice) {
                 Log.d(TAG, "bonding failed")
+                disconnect().enqueue()
             }
         }
     }

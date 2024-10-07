@@ -4,6 +4,7 @@ import android.annotation.SuppressLint
 import android.bluetooth.BluetoothAdapter
 import android.bluetooth.BluetoothDevice
 import android.bluetooth.BluetoothDevice.BOND_BONDED
+import android.bluetooth.BluetoothDevice.BOND_NONE
 import android.bluetooth.BluetoothGatt
 import android.bluetooth.BluetoothManager
 import android.bluetooth.BluetoothProfile
@@ -48,6 +49,10 @@ class BLEViewModel(private val ctx: Context) : ViewModel() {
     var scanStartedCount = 0
     var lastScanTimeScaled: Long = 0
     var scanStartedTimeSeconds = System.currentTimeMillis() / 1000
+
+    var disName: String? = ""
+    var disSerial: String? = ""
+    var deviceState: String? = ""
 
     val scanCallback: ScanCallback = object : ScanCallback() {
         override fun onScanResult(callbackType: Int, result: ScanResult?) {
@@ -231,6 +236,17 @@ class BLEViewModel(private val ctx: Context) : ViewModel() {
                 Log.d(TAG, "JMZ onDeviceConnected on mgr ${bleManager} reports ${bleManager.connectionState} for device ${device.address}")
                 connectedStates[device.address] = bleManager.connectionState
 
+                viewModelScope.launch(Dispatchers.IO) {
+                    batteryLevels[device.address] = bleManager.getBatteryLevel()!!
+                    Log.d(TAG, "JMZ battery level: ${batteryLevels[device.address]}")
+                    disName = bleManager.getDISName()
+                    Log.d(TAG, "JMZ name: ${disName}")
+                    disSerial = bleManager.getDISSerial()
+                    Log.d(TAG, "JMZ serial #: ${disSerial}")
+                    deviceState = bleManager.getDeviceState()
+                    Log.d(TAG, "JMZ device state: ${deviceState}")
+                }
+
                 if (!connectedAddresses.contains(device.address)) {
                     connectedAddresses.add(device.address)
                 }
@@ -313,24 +329,18 @@ class BLEViewModel(private val ctx: Context) : ViewModel() {
             Log.d(TAG, "device ${device.address} mgr ${bleManager}")
 
             try {
-
-                if (device.bondState != BOND_BONDED) {
+                var retries = 3;
+                if (device.bondState == BOND_NONE) {
                     device.createBond()
+                    retries = 0
+                    Log.d(TAG, "pre-bonded device ${device.address} mgr ${bleManager}")
                 }
 
                 bleManager.connect(device)
-                    .retry(3, 100)
+                    .retry(retries, 100)
                     .timeout(15_000)
                     .useAutoConnect(true)
                     .suspend()
-
-                batteryLevels[device.address] = bleManager.getBatteryLevel()!!
-                val disName = bleManager.getDISName()
-                Log.d(TAG, "JMZ name: ${disName}")
-                val disSerial = bleManager.getDISSerial()
-                Log.d(TAG, "JMZ serial #: ${disSerial}")
-                var deviceState = bleManager.getDeviceState()
-                Log.d(TAG, "JMZ device state: ${deviceState}")
             } catch (e: Exception) {
                 bleManager.disconnect()
                 Log.d(TAG, "JMZ exception ${e} while trying to connect to ${device.address}")
